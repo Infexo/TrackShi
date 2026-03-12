@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Clock, Users, Calendar as CalendarIcon, BarChart2, History, Settings, LogOut, Upload } from 'lucide-react';
+import { Clock, Users, Calendar as CalendarIcon, BarChart2, History, Settings, LogOut, Upload, Skull } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Layout() {
@@ -22,10 +22,10 @@ export default function Layout() {
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-2xl font-black tracking-tighter flex items-center gap-2">
-            <span className="text-red-600 drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]">
+            <span className="text-transparent [text-shadow:none] [-webkit-text-stroke:1px_#dc2626]">
               TrackShi
             </span>
-            <span className="text-xl animate-bounce">💩</span>
+            <Skull size={20} className="text-red-600" strokeWidth={2.5} />
           </h1>
         </div>
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
