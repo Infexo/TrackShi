@@ -33,7 +33,9 @@ export default function Auth() {
         alert('Check your email for the login link!');
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      if (err.message !== 'The lock request is aborted') {
+        setError(err.message || 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }

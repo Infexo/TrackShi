@@ -16,6 +16,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
+        if (error.message === 'The lock request is aborted') {
+          // Ignore this error, it happens in React Strict Mode or when multiple tabs are open
+          setLoading(false);
+          return;
+        }
         console.error('Auth session error:', error.message);
         supabase.auth.signOut();
         setUser(null);

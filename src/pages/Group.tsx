@@ -201,6 +201,15 @@ export default function Group() {
     return formatDuration(getLiveDurationSeconds(startedAt));
   };
 
+  const getStudyTag = (seconds: number) => {
+    const hours = seconds / 3600;
+    if (hours < 2) return 'Alimaxxer';
+    if (hours < 5) return 'Avgmaxxer';
+    if (hours < 7) return 'Amaanmaxxer';
+    if (hours < 10) return 'Geganege';
+    return 'Tetrachad';
+  };
+
   if (loading) {
     return <div className="p-8 text-center text-zinc-500 font-serif italic">Loading group data...</div>;
   }
@@ -247,7 +256,12 @@ export default function Group() {
                         {m.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-bold text-lg tracking-tight uppercase">{m.name}</p>
+                        <div className="flex items-center gap-3">
+                          <p className="font-bold text-lg tracking-tight uppercase">{m.name}</p>
+                          <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 bg-zinc-900 text-[#FF5500] border border-zinc-800">
+                            {getStudyTag(m.today_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-3 mt-1">
                           {m.status === 'studying' ? (
                             <>
