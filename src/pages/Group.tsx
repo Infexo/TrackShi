@@ -20,6 +20,7 @@ type GroupMember = {
 function MiniCalendar({ userId }: { userId: string }) {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDateInfo, setSelectedDateInfo] = useState<{ date: Date; seconds: number } | null>(null);
   const currentMonth = new Date();
 
   useEffect(() => {
@@ -66,13 +67,20 @@ function MiniCalendar({ userId }: { userId: string }) {
     const daySessions = sessions.filter((s) => isSameDay(new Date(s.date), cloneDay));
     const totalSeconds = daySessions.reduce((acc, s) => acc + (s.duration_seconds || s.duration_minutes * 60), 0);
     const isCurrentMonth = isSameMonth(day, monthStart);
+    const isSelected = selectedDateInfo && isSameDay(cloneDay, selectedDateInfo.date);
 
     days.push(
       <div
         key={day.toString()}
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectedDateInfo({ date: cloneDay, seconds: totalSeconds });
+        }}
+        onMouseEnter={() => setSelectedDateInfo({ date: cloneDay, seconds: totalSeconds })}
         className={`
-          aspect-square p-1 border flex flex-col items-center justify-center text-[10px] sm:text-xs font-mono transition-all
+          aspect-square p-1 border flex flex-col items-center justify-center text-[10px] sm:text-xs font-mono transition-all cursor-pointer
           ${!isCurrentMonth ? 'opacity-20' : ''}
+          ${isSelected ? 'ring-1 ring-[#FF5500] ring-inset z-10' : 'hover:border-zinc-500'}
           ${getHeatmapColor(totalSeconds)}
         `}
         title={`${format(cloneDay, 'MMM d')}: ${Math.floor(totalSeconds / 3600)}h ${Math.floor((totalSeconds % 3600) / 60)}m`}
@@ -86,12 +94,20 @@ function MiniCalendar({ userId }: { userId: string }) {
   const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   return (
-    <div className="p-4 bg-[#0A0A0A] border-t border-zinc-800">
-      <div className="flex justify-between items-center mb-3">
+    <div className="p-4 bg-[#0A0A0A] border-t border-zinc-800" onClick={(e) => e.stopPropagation()}>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
         <h3 className="text-xs font-mono text-zinc-400 uppercase tracking-widest flex items-center gap-2">
           <CalendarIcon size={14} />
           {format(currentMonth, 'MMMM yyyy')} Activity
         </h3>
+        {selectedDateInfo && (
+          <div className="text-xs font-mono bg-zinc-900 px-2 py-1 border border-zinc-800 text-zinc-300">
+            <span className="text-zinc-500 mr-2">{format(selectedDateInfo.date, 'MMM d')}:</span>
+            <span className={selectedDateInfo.seconds > 0 ? 'text-[#FF5500]' : ''}>
+              {Math.floor(selectedDateInfo.seconds / 3600)}h {Math.floor((selectedDateInfo.seconds % 3600) / 60)}m
+            </span>
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-7 gap-1 max-w-sm">
         {weekDays.map((wd, i) => (
