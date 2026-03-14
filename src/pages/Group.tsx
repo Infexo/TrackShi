@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
-import { startOfWeek, endOfWeek, format } from 'date-fns';
-import { Upload, Image as ImageIcon, Users, Clock } from 'lucide-react';
+import { startOfWeek, endOfWeek, format, startOfMonth, endOfMonth, isSameDay, isSameMonth, addDays } from 'date-fns';
+import { Upload, Image as ImageIcon, Users, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getLogicalDayRange } from '../lib/dateUtils';
 
@@ -17,6 +17,94 @@ type GroupMember = {
   todo_image_url: string | null;
 };
 
+function MiniCalendar({ userId }: { userId: string }) {
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const currentMonth = new Date();
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      const monthStart = startOfMonth(currentMonth);
+      const monthEnd = endOfMonth(currentMonth);
+      const startDate = startOfWeek(monthStart);
+      const endDate = endOfWeek(monthEnd);
+
+      const { data } = await supabase
+        .from('sessions')
+        .select('date, duration_minutes, duration_seconds')
+        .eq('user_id', userId)
+        .gte('date', startDate.toISOString())
+        .lte('date', endDate.toISOString());
+        
+      if (data) setSessions(data);
+      setLoading(false);
+    };
+    fetchSessions();
+  }, [userId]);
+
+  const getHeatmapColor = (seconds: number) => {
+    const hours = seconds / 3600;
+    if (hours === 0) return 'bg-[#141414] border-zinc-800 text-zinc-600';
+    if (hours < 2) return 'bg-[#FF5500]/25 border-[#FF5500]/30 text-zinc-400';
+    if (hours < 5) return 'bg-[#FF5500]/50 border-[#FF5500]/60 text-zinc-300';
+    if (hours < 8) return 'bg-[#FF5500]/75 border-[#FF5500]/80 text-zinc-200';
+    return 'bg-[#FF5500] border-[#FF5500] text-black font-bold';
+  };
+
+  if (loading) return <div className="p-4 text-xs font-mono text-zinc-500 uppercase animate-pulse bg-[#0A0A0A] border-t border-zinc-800">Loading calendar...</div>;
+
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const startDate = startOfWeek(monthStart);
+  const endDate = endOfWeek(monthEnd);
+
+  const days = [];
+  let day = startDate;
+
+  while (day <= endDate) {
+    const cloneDay = day;
+    const daySessions = sessions.filter((s) => isSameDay(new Date(s.date), cloneDay));
+    const totalSeconds = daySessions.reduce((acc, s) => acc + (s.duration_seconds || s.duration_minutes * 60), 0);
+    const isCurrentMonth = isSameMonth(day, monthStart);
+
+    days.push(
+      <div
+        key={day.toString()}
+        className={`
+          aspect-square p-1 border flex flex-col items-center justify-center text-[10px] sm:text-xs font-mono transition-all
+          ${!isCurrentMonth ? 'opacity-20' : ''}
+          ${getHeatmapColor(totalSeconds)}
+        `}
+        title={`${format(cloneDay, 'MMM d')}: ${Math.floor(totalSeconds / 3600)}h ${Math.floor((totalSeconds % 3600) / 60)}m`}
+      >
+        {format(cloneDay, 'd')}
+      </div>
+    );
+    day = addDays(day, 1);
+  }
+
+  const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+  return (
+    <div className="p-4 bg-[#0A0A0A] border-t border-zinc-800">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-xs font-mono text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+          <CalendarIcon size={14} />
+          {format(currentMonth, 'MMMM yyyy')} Activity
+        </h3>
+      </div>
+      <div className="grid grid-cols-7 gap-1 max-w-sm">
+        {weekDays.map((wd, i) => (
+          <div key={i} className="text-center text-[10px] font-mono text-zinc-600 uppercase pb-1">
+            {wd}
+          </div>
+        ))}
+        {days}
+      </div>
+    </div>
+  );
+}
+
 export default function Group() {
   const { user } = useAuth();
   const [members, setMembers] = useState<GroupMember[]>([]);
@@ -24,6 +112,7 @@ export default function Group() {
   const [uploading, setUploading] = useState(false);
   const [groupName, setGroupName] = useState<string | null>(null);
   const [now, setNow] = useState(new Date());
+  const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchGroupData();
@@ -251,44 +340,57 @@ export default function Group() {
                 <div className="p-8 text-center text-zinc-500 font-serif italic">No members found in this group.</div>
               ) : (
                 members.map((m) => (
-                  <div key={m.id} className="p-5 flex items-center justify-between hover:bg-[#141414] transition-colors">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center font-bold text-zinc-500 font-mono text-xl">
-                        {m.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <p className="font-bold text-lg tracking-tight uppercase">{m.name}</p>
-                          <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 bg-zinc-900 text-[#FF5500] border border-zinc-800">
-                            {getStudyTag(m.today_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))}
-                          </span>
+                  <div key={m.id} className="border-b border-zinc-800 last:border-0">
+                    <div 
+                      className="p-5 flex items-center justify-between hover:bg-[#141414] transition-colors cursor-pointer"
+                      onClick={() => setExpandedMemberId(expandedMemberId === m.id ? null : m.id)}
+                    >
+                      <div className="flex items-center gap-5">
+                        <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center font-bold text-zinc-500 font-mono text-xl">
+                          {m.name.charAt(0).toUpperCase()}
                         </div>
-                        <div className="flex items-center gap-3 mt-1">
-                          {m.status === 'studying' ? (
-                            <>
-                              <span className="w-2 h-2 rounded-full bg-[#FF5500] animate-pulse"></span>
-                              <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">
-                                studying <span className="text-[#FF5500]">{m.subject_name}</span>
-                                {m.started_at && ` (${getLiveDuration(m.started_at)})`}
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="w-2 h-2 rounded-full bg-zinc-800"></span>
-                              <span className="text-xs font-mono text-zinc-600 uppercase tracking-widest">offline</span>
-                            </>
-                          )}
+                        <div>
+                          <div className="flex items-center gap-3">
+                            <p className="font-bold text-lg tracking-tight uppercase">{m.name}</p>
+                            <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 bg-zinc-900 text-[#FF5500] border border-zinc-800">
+                              {getStudyTag(m.today_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 mt-1">
+                            {m.status === 'studying' ? (
+                              <>
+                                <span className="w-2 h-2 rounded-full bg-[#FF5500] animate-pulse"></span>
+                                <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">
+                                  studying <span className="text-[#FF5500]">{m.subject_name}</span>
+                                  {m.started_at && ` (${getLiveDuration(m.started_at)})`}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="w-2 h-2 rounded-full bg-zinc-800"></span>
+                                <span className="text-xs font-mono text-zinc-600 uppercase tracking-widest">offline</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="text-right">
+                          <p className="text-lg font-mono text-zinc-100">
+                            {formatDuration(m.today_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))} <span className="text-xs text-zinc-500 uppercase tracking-widest ml-1">today</span>
+                          </p>
+                          <p className="text-sm font-mono text-zinc-500">
+                            {formatDuration(m.week_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))} <span className="text-[10px] uppercase tracking-widest ml-1">this week</span>
+                          </p>
+                        </div>
+                        <div className="text-zinc-500">
+                          {expandedMemberId === m.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-lg font-mono text-zinc-100">
-                        {formatDuration(m.today_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))} <span className="text-xs text-zinc-500 uppercase tracking-widest ml-1">today</span>
-                      </p>
-                      <p className="text-sm font-mono text-zinc-500">
-                        {formatDuration(m.week_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))} <span className="text-[10px] uppercase tracking-widest ml-1">this week</span>
-                      </p>
-                    </div>
+                    {expandedMemberId === m.id && (
+                      <MiniCalendar userId={m.id} />
+                    )}
                   </div>
                 ))
               )}
