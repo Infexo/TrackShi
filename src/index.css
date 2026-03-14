@@ -14,14 +14,19 @@ body {
 }
 
 /* Custom scrollbar for brutalist feel */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #050505;
-  border-left: 1px solid #27272A;
-}
-::-webkit-scrollbar-thumb {
-  background: #FF5500;
+@media (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #050505;
+    border-left: 1px solid #18181B;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #27272A;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3F3F46;
+  }
 }
