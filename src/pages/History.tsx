@@ -34,7 +34,10 @@ export default function History() {
       alert('Invalid duration');
       return;
     }
-    await supabase.from('sessions').update({ duration_minutes: minutes }).eq('id', id);
+    await supabase.from('sessions').update({ 
+      duration_minutes: minutes,
+      duration_seconds: minutes * 60
+    }).eq('id', id);
     fetchSessions();
   };
 
@@ -44,9 +47,10 @@ export default function History() {
     fetchSessions();
   };
 
-  const formatDuration = (minutes: number) => {
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
+  const formatDuration = (minutes: number, seconds?: number) => {
+    const totalSeconds = seconds || minutes * 60;
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
     return `${h}h ${m}m`;
   };
 
@@ -88,7 +92,7 @@ export default function History() {
                       {(session.subjects as any)?.name || 'Unknown'}
                     </td>
                     <td className="p-4 text-sm text-[#FF5500] font-mono">
-                      {formatDuration(session.duration_minutes)}
+                      {formatDuration(session.duration_minutes, session.duration_seconds)}
                     </td>
                     <td className="p-4 text-sm text-zinc-500 font-mono">
                       {format(new Date(session.start_time), 'HH:mm')} - {format(new Date(session.end_time), 'HH:mm')}
