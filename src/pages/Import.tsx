@@ -194,8 +194,11 @@ export default function Import() {
   return (
     <div className="space-y-8">
       <div className="border-b border-zinc-800 pb-6">
-        <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Import Data</h1>
-        <p className="text-zinc-500 font-serif italic text-sm">Import historical study data from YPT (CSV, JSON, or Screenshot).</p>
+        <div className="flex items-center gap-3 mb-1">
+          <h1 className="text-4xl font-black tracking-tighter uppercase">Import Data</h1>
+          <span className="bg-[#FF5500]/10 text-[#FF5500] border border-[#FF5500]/20 px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest">AI Powered</span>
+        </div>
+        <p className="text-zinc-500 font-serif italic text-sm">Import historical study data from YPT (CSV, JSON, or AI Screenshot Analysis).</p>
       </div>
 
       <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none">
@@ -218,7 +221,7 @@ export default function Import() {
                 )}
               </p>
               <p className="text-xs text-zinc-500 font-mono uppercase tracking-widest text-center max-w-xs">
-                CSV, JSON, or Screenshot of your study stats
+                CSV, JSON, or <span className="text-[#FF5500]">AI-Powered</span> Screenshot
               </p>
             </div>
             <input type="file" className="hidden" accept=".csv,.json,image/*" onChange={handleFileUpload} disabled={aiParsing} />
