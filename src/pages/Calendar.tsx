@@ -45,13 +45,12 @@ export default function Calendar() {
   };
 
   const getHeatmapColor = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    if (minutes === 0) return 'bg-white';
-    if (minutes < 60) return 'bg-emerald-100 border-emerald-200';
-    if (minutes < 180) return 'bg-emerald-200 border-emerald-300';
-    if (minutes < 360) return 'bg-emerald-300 border-emerald-400';
-    if (minutes < 540) return 'bg-emerald-400 border-emerald-500 text-white';
-    return 'bg-emerald-500 border-emerald-600 text-white';
+    const hours = seconds / 3600;
+    if (hours === 0) return 'bg-white';
+    if (hours < 2) return 'bg-red-600/25 border-red-200';
+    if (hours < 5) return 'bg-red-600/50 border-red-300';
+    if (hours < 8) return 'bg-red-600/75 border-red-400 text-white';
+    return 'bg-red-600 border-red-700 text-white';
   };
 
   const handleDayClick = (date: Date) => {
