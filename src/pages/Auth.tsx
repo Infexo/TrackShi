@@ -45,8 +45,8 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-[#050505] text-zinc-100 p-4">
       <div className="max-w-md w-full p-8 bg-[#0A0A0A] border border-zinc-800 shadow-[0_0_30px_rgba(255,85,0,0.05)]">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-black tracking-tighter text-[#FF5500] uppercase mb-2">TS</h1>
-          <p className="text-zinc-500 font-serif italic text-sm">Enter the void.</p>
+          <h1 className="text-4xl font-black tracking-tighter text-[#FF5500] uppercase mb-2">TrackShi</h1>
+          <p className="text-zinc-500 font-serif italic text-sm">Only droppers allowed</p>
         </div>
         
         <h2 className="text-xl font-mono uppercase tracking-widest mb-6 text-center border-b border-zinc-800 pb-4">
@@ -57,7 +57,7 @@ export default function Auth() {
         
         <form onSubmit={handleAuth} className="space-y-6">
           <div>
-            <label className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">Email Designation</label>
+            <label className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">Email</label>
             <input
               type="email"
               value={email}
@@ -67,7 +67,7 @@ export default function Auth() {
             />
           </div>
           <div>
-            <label className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">Access Code</label>
+            <label className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">Password</label>
             <input
               type="password"
               value={password}
@@ -81,7 +81,7 @@ export default function Auth() {
             disabled={loading}
             className="w-full bg-[#FF5500] text-black p-4 font-mono uppercase tracking-widest hover:bg-orange-600 disabled:opacity-50 transition-colors mt-4"
           >
-            {loading ? 'Processing...' : isLogin ? 'Access Granted' : 'Establish Link'}
+            {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Sign Up'}
           </button>
         </form>
         
@@ -90,7 +90,7 @@ export default function Auth() {
             onClick={() => setIsLogin(!isLogin)}
             className="text-xs font-mono text-zinc-500 hover:text-[#FF5500] uppercase tracking-widest transition-colors"
           >
-            {isLogin ? 'No clearance? Request access' : 'Clearance verified? Proceed to login'}
+            {isLogin ? 'No account? Sign Up' : 'Proceed to log in'}
           </button>
         </div>
       </div>
