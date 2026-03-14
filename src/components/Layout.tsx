@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Clock, Users, Calendar as CalendarIcon, BarChart2, History, Settings, LogOut, Upload, Skull } from 'lucide-react';
+import { Clock, Users, Calendar as CalendarIcon, BarChart2, History, Settings, LogOut, Upload } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Layout() {
@@ -21,11 +21,8 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className="w-64 bg-[#0A0A0A] border-r border-zinc-800 flex flex-col">
         <div className="p-6 border-b border-zinc-800">
-          <h1 className="text-2xl font-black tracking-tighter flex items-center gap-2">
-            <span className="text-transparent [text-shadow:none] [-webkit-text-stroke:1px_#FF5500]">
-              TrackShi
-            </span>
-            <Skull size={20} className="text-[#FF5500]" strokeWidth={2.5} />
+          <h1 className="text-4xl font-black tracking-tighter text-[#FF5500] uppercase">
+            TS
           </h1>
         </div>
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">

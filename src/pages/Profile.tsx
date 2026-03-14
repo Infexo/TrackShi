@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { Plus, Trash2, Save, Edit2 } from 'lucide-react';
 
-const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899'];
+const COLORS = ['#FF0000', '#00FF00', '#FFFF00', '#00FFFF', '#FF00FF', '#FF5500', '#FFFFFF', '#8800FF'];
 
 export default function Profile() {
   const { user } = useAuth();
@@ -13,7 +13,6 @@ export default function Profile() {
   const [fullName, setFullName] = useState('');
   const [groupName, setGroupName] = useState('');
   const [dailyGoal, setDailyGoal] = useState(0);
-  const [whitelist, setWhitelist] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +31,6 @@ export default function Profile() {
       setFullName(profile.full_name || '');
       setGroupName(profile.group_name || '');
       setDailyGoal(profile.daily_goal || 0);
-      setWhitelist(profile.focus_whitelist || '');
     }
     setLoading(false);
   };
@@ -79,7 +77,6 @@ export default function Profile() {
       full_name: fullName,
       group_name: groupName,
       daily_goal: dailyGoal,
-      focus_whitelist: whitelist,
       updated_at: new Date().toISOString()
     });
     
@@ -208,19 +205,6 @@ export default function Profile() {
               />
               <span className="text-sm font-mono text-zinc-500 uppercase tracking-widest">hours per day</span>
             </div>
-          </div>
-
-          {/* Focus Whitelist */}
-          <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none">
-            <h2 className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-4">Focus Whitelist</h2>
-            <p className="text-xs text-zinc-500 font-serif italic mb-4">Enter allowed websites during focus mode (one per line).</p>
-            <textarea
-              value={whitelist}
-              onChange={(e) => setWhitelist(e.target.value)}
-              rows={5}
-              placeholder="youtube.com&#10;google.com"
-              className="w-full p-4 bg-[#141414] border border-zinc-800 rounded-none focus:outline-none focus:border-[#FF5500] text-zinc-100 font-mono text-sm resize-none"
-            />
           </div>
 
           {/* Save Button */}

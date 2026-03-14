@@ -43,7 +43,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-[#050505] text-zinc-100 p-4">
       <div className="max-w-md w-full p-8 bg-[#0A0A0A] border border-zinc-800 shadow-[0_0_30px_rgba(255,85,0,0.05)]">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-black tracking-tighter uppercase mb-2">Track<span className="text-[#FF5500]">Shi</span></h1>
+          <h1 className="text-4xl font-black tracking-tighter text-[#FF5500] uppercase mb-2">TS</h1>
           <p className="text-zinc-500 font-serif italic text-sm">Enter the void.</p>
         </div>
         
