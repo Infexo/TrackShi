@@ -237,8 +237,26 @@ export default function Dashboard() {
       duration_seconds: seconds,
       date: format(start, 'yyyy-MM-dd')
     });
+    
     if (!error) {
       fetchData(); // refresh todaySessions
+    } else if (error.code === '23503') {
+      // Subject was deleted, save without subject_id
+      const { error: retryError } = await supabase.from('sessions').insert({
+        user_id: user!.id,
+        subject_id: null,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        duration_minutes: Math.floor(seconds / 60),
+        duration_seconds: seconds,
+        date: format(start, 'yyyy-MM-dd')
+      });
+      if (!retryError) {
+        fetchData();
+      } else {
+        console.error("Error saving session after retry:", retryError);
+        setTodaySessions(prev => prev.filter(s => s.id !== newSession.id));
+      }
     } else {
       console.error("Error saving session:", error);
       // Revert optimistic update
@@ -335,12 +353,25 @@ export default function Dashboard() {
           {/* Subjects List */}
           <div className="space-y-4">
             <h2 className="text-xs font-mono text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">Your Subjects</h2>
-            {subjects.length === 0 ? (
-              <div className="bg-[#0A0A0A] p-8 border border-zinc-800 rounded-none text-center text-zinc-500 font-serif italic">
-                No subjects added yet. Go to Settings to add some.
-              </div>
-            ) : (
-              subjects.map(subject => {
+            {(() => {
+              const displaySubjects = [...subjects];
+              if (activeSubjectId && !subjects.find(s => s.id === activeSubjectId)) {
+                displaySubjects.unshift({
+                  id: activeSubjectId,
+                  name: 'Deleted Subject',
+                  color: '#555555'
+                });
+              }
+              
+              if (displaySubjects.length === 0) {
+                return (
+                  <div className="bg-[#0A0A0A] p-8 border border-zinc-800 rounded-none text-center text-zinc-500 font-serif italic">
+                    No subjects added yet. Go to Settings to add some.
+                  </div>
+                );
+              }
+              
+              return displaySubjects.map(subject => {
                 const isRunning = activeSubjectId === subject.id;
                 const subjectSessions = todaySessions.filter(s => s.subject_id === subject.id);
                 const accumulatedSeconds = subjectSessions.reduce((acc, s) => acc + (s.duration_seconds || s.duration_minutes * 60), 0);
@@ -369,8 +400,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                 )
-              })
-            )}
+              });
+            })()}
           </div>
         </div>
       </div>
