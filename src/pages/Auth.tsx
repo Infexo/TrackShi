@@ -40,47 +40,55 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full p-8 bg-white border border-gray-200">
-        <h2 className="text-2xl font-semibold mb-6 text-center">
-          {isLogin ? 'Sign In' : 'Create Account'}
+    <div className="min-h-screen flex items-center justify-center bg-[#050505] text-zinc-100 p-4">
+      <div className="max-w-md w-full p-8 bg-[#0A0A0A] border border-zinc-800 shadow-[0_0_30px_rgba(255,85,0,0.05)]">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-black tracking-tighter uppercase mb-2">Track<span className="text-[#FF5500]">Shi</span></h1>
+          <p className="text-zinc-500 font-serif italic text-sm">Enter the void.</p>
+        </div>
+        
+        <h2 className="text-xl font-mono uppercase tracking-widest mb-6 text-center border-b border-zinc-800 pb-4">
+          {isLogin ? 'Authenticate' : 'Initialize'}
         </h2>
-        {error && <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm">{error}</div>}
-        <form onSubmit={handleAuth} className="space-y-4">
+        
+        {error && <div className="mb-6 p-4 bg-red-950/50 border border-red-900 text-red-400 text-xs font-mono uppercase tracking-widest text-center">{error}</div>}
+        
+        <form onSubmit={handleAuth} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">Email Designation</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border border-gray-300 focus:outline-none focus:border-black"
+              className="w-full p-3 bg-[#141414] border border-zinc-800 rounded-none focus:outline-none focus:border-[#FF5500] text-zinc-100 font-mono transition-colors"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">Access Code</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border border-gray-300 focus:outline-none focus:border-black"
+              className="w-full p-3 bg-[#141414] border border-zinc-800 rounded-none focus:outline-none focus:border-[#FF5500] text-zinc-100 font-mono transition-colors"
               required
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-black text-white p-2 font-medium hover:bg-gray-800 disabled:opacity-50"
+            className="w-full bg-[#FF5500] text-black p-4 font-mono uppercase tracking-widest hover:bg-orange-600 disabled:opacity-50 transition-colors mt-4"
           >
-            {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Sign Up'}
+            {loading ? 'Processing...' : isLogin ? 'Access Granted' : 'Establish Link'}
           </button>
         </form>
-        <div className="mt-4 text-center">
+        
+        <div className="mt-8 text-center border-t border-zinc-800 pt-6">
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-gray-600 hover:text-black underline"
+            className="text-xs font-mono text-zinc-500 hover:text-[#FF5500] uppercase tracking-widest transition-colors"
           >
-            {isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
+            {isLogin ? 'No clearance? Request access' : 'Clearance verified? Proceed to login'}
           </button>
         </div>
       </div>

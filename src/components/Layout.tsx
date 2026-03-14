@@ -17,18 +17,18 @@ export default function Layout() {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900 font-sans">
+    <div className="flex h-screen bg-[#050505] text-zinc-100 font-sans">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-200">
+      <aside className="w-64 bg-[#0A0A0A] border-r border-zinc-800 flex flex-col">
+        <div className="p-6 border-b border-zinc-800">
           <h1 className="text-2xl font-black tracking-tighter flex items-center gap-2">
-            <span className="text-transparent [text-shadow:none] [-webkit-text-stroke:1px_#dc2626]">
+            <span className="text-transparent [text-shadow:none] [-webkit-text-stroke:1px_#FF5500]">
               TrackShi
             </span>
-            <Skull size={20} className="text-red-600" strokeWidth={2.5} />
+            <Skull size={20} className="text-[#FF5500]" strokeWidth={2.5} />
           </h1>
         </div>
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -36,10 +36,10 @@ export default function Layout() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 px-3 py-3 rounded-none border text-sm font-mono uppercase tracking-widest transition-all ${
                   isActive
-                    ? 'bg-gray-100 text-black'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-black'
+                    ? 'bg-[#FF5500] text-black border-[#FF5500]'
+                    : 'bg-transparent text-zinc-500 border-transparent hover:border-zinc-700 hover:text-zinc-100'
                 }`}
               >
                 <Icon size={18} />
@@ -48,10 +48,10 @@ export default function Layout() {
             );
           })}
         </nav>
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-zinc-800">
           <button
             onClick={() => supabase.auth.signOut()}
-            className="flex items-center gap-3 px-3 py-2 w-full rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-black transition-colors"
+            className="flex items-center gap-3 px-3 py-3 w-full rounded-none border border-transparent text-sm font-mono uppercase tracking-widest text-zinc-500 hover:border-zinc-700 hover:text-zinc-100 transition-all"
           >
             <LogOut size={18} />
             Sign Out
@@ -60,7 +60,7 @@ export default function Layout() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="flex-1 overflow-y-auto p-8 bg-[#050505]">
         <div className="max-w-5xl mx-auto">
           <Outlet />
         </div>

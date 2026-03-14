@@ -291,20 +291,20 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-zinc-800 pb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-1">Dashboard</h1>
-          <p className="text-gray-500 text-sm">Track your study sessions. Resets at 4:00 AM.</p>
+          <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Dashboard</h1>
+          <p className="text-zinc-500 font-serif italic text-sm">Track your study sessions. Resets at 4:00 AM.</p>
         </div>
         <div className="flex items-center gap-4">
           {!activeSubjectId && breakSeconds > 0 && (
             <div className="flex flex-col items-end">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Time since last session</span>
-              <span className="text-lg font-mono font-bold text-gray-400">{formatTime(breakSeconds)}</span>
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Time since last session</span>
+              <span className="text-lg font-mono font-bold text-zinc-300">{formatTime(breakSeconds)}</span>
             </div>
           )}
-          <div className="flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-full font-medium">
-            <Flame size={20} className={streak > 0 ? "fill-orange-600" : ""} />
+          <div className="flex items-center gap-2 bg-[#141414] border border-zinc-800 text-[#FF5500] px-4 py-2 rounded-none font-mono text-sm uppercase tracking-widest">
+            <Flame size={18} className={streak > 0 ? "fill-[#FF5500]" : ""} />
             {streak} Day Streak
           </div>
         </div>
@@ -313,31 +313,31 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Progress Bar */}
-          <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm">
-            <div className="flex justify-between items-end mb-2">
-              <div>
-                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Today's Progress</p>
-                <p className="text-2xl font-bold mt-1">
-                  {Math.floor(totalTodayHours)}h {Math.floor((totalTodaySeconds % 3600) / 60)}m
-                  <span className="text-gray-400 text-base font-normal ml-2">/ {dailyGoal}h goal</span>
-                </p>
-              </div>
-              <span className="text-sm font-medium text-gray-500">{Math.round(progressPercentage)}%</span>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+          <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-zinc-900">
               <div
-                className="bg-black h-3 rounded-full transition-all duration-500 ease-out"
+                className="bg-[#FF5500] h-1 transition-all duration-500 ease-out"
                 style={{ width: `${progressPercentage}%` }}
               ></div>
+            </div>
+            <div className="flex justify-between items-end mb-4 mt-2">
+              <div>
+                <p className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">Today's Progress</p>
+                <p className="text-4xl font-light font-mono tracking-tighter">
+                  {Math.floor(totalTodayHours)}<span className="text-xl text-zinc-500">h</span> {Math.floor((totalTodaySeconds % 3600) / 60)}<span className="text-xl text-zinc-500">m</span>
+                  <span className="text-zinc-600 text-sm font-serif italic ml-4">/ {dailyGoal}h goal</span>
+                </p>
+              </div>
+              <span className="text-2xl font-mono text-[#FF5500]">{Math.round(progressPercentage)}%</span>
             </div>
           </div>
 
           {/* Subjects List */}
           <div className="space-y-4">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Your Subjects</h2>
+            <h2 className="text-xs font-mono text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">Your Subjects</h2>
             {subjects.length === 0 ? (
-              <div className="bg-white p-8 border border-gray-200 rounded-lg shadow-sm text-center text-gray-500">
-                No subjects added yet. Go to Settings to add some!
+              <div className="bg-[#0A0A0A] p-8 border border-zinc-800 rounded-none text-center text-zinc-500 font-serif italic">
+                No subjects added yet. Go to Settings to add some.
               </div>
             ) : (
               subjects.map(subject => {
@@ -349,20 +349,22 @@ export default function Dashboard() {
                 return (
                   <div 
                     key={subject.id} 
-                    className={`flex items-center justify-between p-4 bg-white border rounded-lg shadow-sm transition-all ${isRunning ? 'border-black ring-1 ring-black' : 'border-gray-200'}`}
-                    style={{ borderLeftWidth: '6px', borderLeftColor: subject.color || '#3b82f6' }}
+                    className={`flex items-center justify-between p-5 bg-[#0A0A0A] border rounded-none transition-all ${isRunning ? 'border-[#FF5500] shadow-[0_0_15px_rgba(255,85,0,0.15)]' : 'border-zinc-800 hover:border-zinc-600'}`}
                   >
-                    <div>
-                      <h3 className="font-semibold text-lg">{subject.name}</h3>
-                      {isRunning && <p className="text-xs text-green-600 font-medium animate-pulse">Recording...</p>}
+                    <div className="flex items-center gap-4">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: subject.color || '#FF5500', opacity: isRunning ? 1 : 0.5 }}></div>
+                      <div>
+                        <h3 className="font-bold text-xl tracking-tight uppercase">{subject.name}</h3>
+                        {isRunning && <p className="text-xs text-[#FF5500] font-mono uppercase tracking-widest mt-1 animate-pulse">Recording</p>}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-6">
-                      <span className="text-2xl font-mono tracking-tight">{formatTime(displaySeconds)}</span>
+                    <div className="flex items-center gap-8">
+                      <span className={`text-3xl font-mono tracking-tighter ${isRunning ? 'text-zinc-100' : 'text-zinc-500'}`}>{formatTime(displaySeconds)}</span>
                       <button 
                         onClick={() => handleToggleTimer(subject.id)} 
-                        className={`p-4 rounded-full transition-colors ${isRunning ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-black text-white hover:bg-gray-800'}`}
+                        className={`p-4 rounded-none border transition-all ${isRunning ? 'bg-[#FF5500] border-[#FF5500] text-black' : 'bg-transparent border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-100'}`}
                       >
-                        {isRunning ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+                        {isRunning ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1" />}
                       </button>
                     </div>
                   </div>

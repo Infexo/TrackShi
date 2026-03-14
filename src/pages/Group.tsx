@@ -202,20 +202,20 @@ export default function Group() {
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-gray-500">Loading group data...</div>;
+    return <div className="p-8 text-center text-zinc-500 font-serif italic">Loading group data...</div>;
   }
 
   if (!groupName) {
     return (
       <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-1">Group Dashboard</h1>
-          <p className="text-gray-500 text-sm">See what your friends are studying right now.</p>
+        <div className="border-b border-zinc-800 pb-6">
+          <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Group Dashboard</h1>
+          <p className="text-zinc-500 font-serif italic text-sm">See what your friends are studying right now.</p>
         </div>
-        <div className="bg-white p-8 border border-gray-200 rounded-lg shadow-sm text-center">
-          <h2 className="text-lg font-semibold mb-2">You are not in a group</h2>
-          <p className="text-gray-600 mb-6">Join a group to see your friends' study sessions and to-do lists.</p>
-          <Link to="/profile" className="bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 font-medium inline-block">
+        <div className="bg-[#0A0A0A] p-8 border border-zinc-800 rounded-none text-center">
+          <h2 className="text-xl font-bold uppercase tracking-widest mb-2">You are not in a group</h2>
+          <p className="text-zinc-500 font-serif italic mb-8">Join a group to see your friends' study sessions and to-do lists.</p>
+          <Link to="/profile" className="bg-[#FF5500] text-black px-8 py-4 rounded-none hover:bg-orange-600 font-mono uppercase tracking-widest text-sm inline-block transition-colors">
             Go to Settings to Join a Group
           </Link>
         </div>
@@ -225,53 +225,53 @@ export default function Group() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight mb-1">Group: {groupName}</h1>
-        <p className="text-gray-500 text-sm">See what your friends are studying right now.</p>
+      <div className="border-b border-zinc-800 pb-6">
+        <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Group: {groupName}</h1>
+        <p className="text-zinc-500 font-serif italic text-sm">See what your friends are studying right now.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Live Study</h2>
+          <div className="bg-[#0A0A0A] border border-zinc-800 rounded-none overflow-hidden">
+            <div className="p-4 border-b border-zinc-800 bg-[#141414]">
+              <h2 className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Live Study</h2>
             </div>
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-zinc-800">
               {members.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">No members found in this group.</div>
+                <div className="p-8 text-center text-zinc-500 font-serif italic">No members found in this group.</div>
               ) : (
                 members.map((m) => (
-                  <div key={m.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600">
+                  <div key={m.id} className="p-5 flex items-center justify-between hover:bg-[#141414] transition-colors">
+                    <div className="flex items-center gap-5">
+                      <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center font-bold text-zinc-500 font-mono text-xl">
                         {m.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{m.name}</p>
-                        <div className="flex items-center gap-2 mt-1">
+                        <p className="font-bold text-lg tracking-tight uppercase">{m.name}</p>
+                        <div className="flex items-center gap-3 mt-1">
                           {m.status === 'studying' ? (
                             <>
-                              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                              <span className="text-sm text-gray-600">
-                                studying <span className="font-medium">{m.subject_name}</span>
+                              <span className="w-2 h-2 rounded-full bg-[#FF5500] animate-pulse"></span>
+                              <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">
+                                studying <span className="text-[#FF5500]">{m.subject_name}</span>
                                 {m.started_at && ` (${getLiveDuration(m.started_at)})`}
                               </span>
                             </>
                           ) : (
                             <>
-                              <span className="w-2 h-2 rounded-full bg-gray-300"></span>
-                              <span className="text-sm text-gray-500">offline</span>
+                              <span className="w-2 h-2 rounded-full bg-zinc-800"></span>
+                              <span className="text-xs font-mono text-zinc-600 uppercase tracking-widest">offline</span>
                             </>
                           )}
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatDuration(m.today_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))} today
+                      <p className="text-lg font-mono text-zinc-100">
+                        {formatDuration(m.today_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))} <span className="text-xs text-zinc-500 uppercase tracking-widest ml-1">today</span>
                       </p>
-                      <p className="text-xs text-gray-500">
-                        {formatDuration(m.week_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))} this week
+                      <p className="text-sm font-mono text-zinc-500">
+                        {formatDuration(m.week_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))} <span className="text-[10px] uppercase tracking-widest ml-1">this week</span>
                       </p>
                     </div>
                   </div>
@@ -282,28 +282,28 @@ export default function Group() {
         </div>
 
         <div className="space-y-8">
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Today's To-Do Lists</h2>
-              <label className="cursor-pointer text-gray-500 hover:text-black transition-colors">
+          <div className="bg-[#0A0A0A] border border-zinc-800 rounded-none overflow-hidden">
+            <div className="p-4 border-b border-zinc-800 bg-[#141414] flex justify-between items-center">
+              <h2 className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Today's To-Do Lists</h2>
+              <label className="cursor-pointer text-zinc-500 hover:text-[#FF5500] transition-colors">
                 <Upload size={18} />
                 <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploading} />
               </label>
             </div>
             <div className="p-4 space-y-4">
-              {uploading && <div className="text-sm text-gray-500 text-center py-4">Uploading...</div>}
+              {uploading && <div className="text-sm font-mono text-zinc-500 uppercase tracking-widest text-center py-4">Uploading...</div>}
               {!loading && members.filter(m => m.todo_image_url).length === 0 && !uploading && (
-                <div className="text-sm text-gray-500 text-center py-8 flex flex-col items-center gap-2">
-                  <ImageIcon size={24} className="text-gray-300" />
+                <div className="text-sm font-serif italic text-zinc-500 text-center py-8 flex flex-col items-center gap-3">
+                  <ImageIcon size={24} className="text-zinc-800" />
                   No to-do lists uploaded today.
                 </div>
               )}
               {members.filter(m => m.todo_image_url).map(m => (
-                <div key={m.id} className="border border-gray-200 rounded-md overflow-hidden">
-                  <div className="bg-gray-50 px-3 py-2 border-b border-gray-200 text-sm font-medium text-gray-700">
+                <div key={m.id} className="border border-zinc-800 rounded-none overflow-hidden">
+                  <div className="bg-[#141414] px-3 py-2 border-b border-zinc-800 text-xs font-mono uppercase tracking-widest text-zinc-400">
                     {m.name}'s List
                   </div>
-                  <img src={m.todo_image_url!} alt={`${m.name}'s todo list`} className="w-full h-auto object-cover" />
+                  <img src={m.todo_image_url!} alt={`${m.name}'s todo list`} className="w-full h-auto object-cover grayscale hover:grayscale-0 transition-all duration-500" />
                 </div>
               ))}
             </div>

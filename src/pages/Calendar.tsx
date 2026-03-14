@@ -46,11 +46,11 @@ export default function Calendar() {
 
   const getHeatmapColor = (seconds: number) => {
     const hours = seconds / 3600;
-    if (hours === 0) return 'bg-white';
-    if (hours < 2) return 'bg-red-600/25 border-red-200';
-    if (hours < 5) return 'bg-red-600/50 border-red-300';
-    if (hours < 8) return 'bg-red-600/75 border-red-400 text-white';
-    return 'bg-red-600 border-red-700 text-white';
+    if (hours === 0) return 'bg-[#141414] border-zinc-800 text-zinc-500';
+    if (hours < 2) return 'bg-[#FF5500]/25 border-[#FF5500]/30 text-zinc-300';
+    if (hours < 5) return 'bg-[#FF5500]/50 border-[#FF5500]/60 text-zinc-200';
+    if (hours < 8) return 'bg-[#FF5500]/75 border-[#FF5500]/80 text-zinc-100';
+    return 'bg-[#FF5500] border-[#FF5500] text-black font-bold';
   };
 
   const handleDayClick = (date: Date) => {
@@ -81,7 +81,7 @@ export default function Calendar() {
     const headerRow = (
       <div className="grid grid-cols-7 mb-2" key="header">
         {weekDays.map((wd, i) => (
-          <div key={i} className="text-center text-xs font-semibold text-gray-500 uppercase tracking-wider py-2">
+          <div key={i} className="text-center text-xs font-mono text-zinc-500 uppercase tracking-widest py-2">
             {wd}
           </div>
         ))}
@@ -103,18 +103,18 @@ export default function Calendar() {
             key={day.toString()}
             onClick={() => handleDayClick(cloneDay)}
             className={`
-              min-h-[80px] p-2 border border-gray-100 cursor-pointer transition-all
-              ${!isCurrentMonth ? 'text-gray-300 bg-gray-50/50' : 'text-gray-700'}
-              ${isSelected ? 'ring-2 ring-black ring-inset z-10' : 'hover:border-gray-300'}
+              min-h-[100px] p-3 border cursor-pointer transition-all rounded-none
+              ${!isCurrentMonth ? 'opacity-30' : ''}
+              ${isSelected ? 'ring-2 ring-[#FF5500] ring-inset z-10' : 'hover:border-zinc-500'}
               ${getHeatmapColor(totalSeconds)}
             `}
           >
-            <div className="flex justify-between items-start">
-              <span className={`text-sm font-medium ${!isCurrentMonth ? 'opacity-50' : ''}`}>
+            <div className="flex flex-col h-full justify-between items-start">
+              <span className={`text-sm font-mono ${!isCurrentMonth ? 'opacity-50' : ''}`}>
                 {formattedDate}
               </span>
               {totalSeconds > 0 && (
-                <span className="text-xs font-semibold opacity-75">
+                <span className="text-xs font-mono uppercase tracking-widest mt-auto">
                   {Math.floor(totalSeconds / 3600)}h {Math.floor((totalSeconds % 3600) / 60)}m
                 </span>
               )}
@@ -133,21 +133,21 @@ export default function Calendar() {
     }
 
     return (
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-          <h2 className="text-lg font-bold text-gray-900">
+      <div className="bg-[#0A0A0A] border border-zinc-800 rounded-none overflow-hidden">
+        <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-[#141414]">
+          <h2 className="text-xl font-bold uppercase tracking-widest text-zinc-100">
             {format(currentMonth, 'MMMM yyyy')}
           </h2>
           <div className="flex gap-2">
             <button 
               onClick={prevMonth}
-              className="p-2 rounded-md hover:bg-gray-200 text-gray-600 transition-colors"
+              className="p-2 rounded-none border border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 transition-colors"
             >
               <ChevronLeft size={20} />
             </button>
             <button 
               onClick={nextMonth}
-              className="p-2 rounded-md hover:bg-gray-200 text-gray-600 transition-colors"
+              className="p-2 rounded-none border border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 transition-colors"
             >
               <ChevronRight size={20} />
             </button>
@@ -155,7 +155,7 @@ export default function Calendar() {
         </div>
         <div className="p-4">
           {headerRow}
-          <div className="border-l border-t border-gray-100">
+          <div className="border-l border-t border-zinc-800">
             {rows}
           </div>
         </div>
@@ -165,18 +165,18 @@ export default function Calendar() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight mb-1">Calendar</h1>
-        <p className="text-gray-500 text-sm">Track your daily study sessions.</p>
+      <div className="border-b border-zinc-800 pb-6">
+        <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Calendar</h1>
+        <p className="text-zinc-500 font-serif italic text-sm">Track your daily study sessions.</p>
       </div>
 
       {renderCalendar()}
 
       {selectedDate && (
-        <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm">
-          <h3 className="text-lg font-semibold mb-2">{format(selectedDate, 'MMMM d, yyyy')}</h3>
-          <p className="text-gray-700">
-            Total studied: <span className="font-bold">{Math.floor(selectedDayHours)}h {Math.round((selectedDayHours % 1) * 60)}m</span>
+        <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none">
+          <h3 className="text-sm font-mono text-zinc-500 uppercase tracking-widest mb-2">{format(selectedDate, 'MMMM d, yyyy')}</h3>
+          <p className="text-3xl font-mono tracking-tighter text-zinc-100">
+            {Math.floor(selectedDayHours)}<span className="text-xl text-zinc-500">h</span> {Math.round((selectedDayHours % 1) * 60)}<span className="text-xl text-zinc-500">m</span>
           </p>
         </div>
       )}

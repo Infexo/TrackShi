@@ -1,1 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+}
+
+body {
+  background-color: #050505;
+  color: #F4F4F5;
+  font-family: var(--font-sans);
+}
+
+/* Custom scrollbar for brutalist feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+  border-left: 1px solid #27272A;
+}
+::-webkit-scrollbar-thumb {
+  background: #FF5500;
+}

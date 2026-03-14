@@ -92,102 +92,102 @@ export default function Profile() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight mb-1">Settings</h1>
-        <p className="text-gray-500 text-sm">Manage your profile, subjects, and goals.</p>
+      <div className="border-b border-zinc-800 pb-6">
+        <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Settings</h1>
+        <p className="text-zinc-500 font-serif italic text-sm">Manage your profile, subjects, and goals.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-8">
           {/* Profile Details */}
-          <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Profile</h2>
+          <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none">
+            <h2 className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-4">Profile</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Username / Full Name</label>
+                <label className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">Username / Full Name</label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Your name..."
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-black text-sm"
+                  className="w-full p-3 bg-[#141414] border border-zinc-800 rounded-none focus:outline-none focus:border-[#FF5500] text-zinc-100 font-mono transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Group Name</label>
+                <label className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">Group Name</label>
                 <input
                   type="text"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
                   placeholder="e.g., StudyBuddies2026"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-black text-sm"
+                  className="w-full p-3 bg-[#141414] border border-zinc-800 rounded-none focus:outline-none focus:border-[#FF5500] text-zinc-100 font-mono transition-colors"
                 />
-                <p className="text-xs text-gray-500 mt-1">Join a group by entering the exact same name as your friends.</p>
+                <p className="text-xs text-zinc-500 font-serif italic mt-2">Join a group by entering the exact same name as your friends.</p>
               </div>
             </div>
           </div>
 
           {/* Subjects Management */}
-          <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Subjects</h2>
-            <form onSubmit={handleAddSubject} className="flex flex-col gap-3 mb-4">
+          <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none">
+            <h2 className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-4">Subjects</h2>
+            <form onSubmit={handleAddSubject} className="flex flex-col gap-4 mb-6">
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={newSubject}
                   onChange={(e) => setNewSubject(e.target.value)}
                   placeholder="New subject name..."
-                  className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-black text-sm"
+                  className="flex-1 p-3 bg-[#141414] border border-zinc-800 rounded-none focus:outline-none focus:border-[#FF5500] text-zinc-100 font-mono transition-colors"
                 />
                 <button
                   type="submit"
-                  className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors flex items-center gap-2 text-sm font-medium"
+                  className="bg-[#FF5500] text-black px-6 py-3 rounded-none hover:bg-orange-600 transition-colors flex items-center gap-2 font-mono uppercase tracking-widest text-sm"
                 >
                   <Plus size={16} /> Add
                 </button>
               </div>
-              <div className="flex gap-2 items-center">
-                <span className="text-xs text-gray-500">Color:</span>
-                <div className="flex gap-1">
+              <div className="flex gap-4 items-center">
+                <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Color:</span>
+                <div className="flex gap-2">
                   {COLORS.map(c => (
                     <button
                       key={c}
                       type="button"
                       onClick={() => setNewSubjectColor(c)}
-                      className={`w-6 h-6 rounded-full border-2 ${newSubjectColor === c ? 'border-gray-900' : 'border-transparent'}`}
+                      className={`w-8 h-8 rounded-none border-2 transition-all ${newSubjectColor === c ? 'border-zinc-100 scale-110' : 'border-transparent hover:scale-105'}`}
                       style={{ backgroundColor: c }}
                     />
                   ))}
                 </div>
               </div>
             </form>
-            <ul className="divide-y divide-gray-100 border border-gray-100 rounded-md">
+            <ul className="divide-y divide-zinc-800 border border-zinc-800 rounded-none bg-[#141414]">
               {subjects.map((s) => (
-                <li key={s.id} className="p-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: s.color || '#3b82f6' }} />
-                    <span className="text-sm font-medium text-gray-700">{s.name}</span>
+                <li key={s.id} className="p-4 flex items-center justify-between hover:bg-zinc-900 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-4 h-4 rounded-none" style={{ backgroundColor: s.color || '#FF5500' }} />
+                    <span className="font-bold uppercase tracking-tight text-zinc-100">{s.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-4">
                     <button
                       onClick={() => handleRenameSubject(s.id, s.name)}
-                      className="text-gray-400 hover:text-black transition-colors"
+                      className="text-zinc-500 hover:text-zinc-100 transition-colors"
                       title="Rename subject"
                     >
-                      <Edit2 size={16} />
+                      <Edit2 size={18} />
                     </button>
                     <button
                       onClick={() => handleDeleteSubject(s.id)}
-                      className="text-gray-400 hover:text-red-600 transition-colors"
+                      className="text-zinc-500 hover:text-red-500 transition-colors"
                       title="Delete subject"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 </li>
               ))}
               {subjects.length === 0 && (
-                <li className="p-4 text-center text-sm text-gray-500">No subjects added yet.</li>
+                <li className="p-6 text-center text-zinc-500 font-serif italic">No subjects added yet.</li>
               )}
             </ul>
           </div>
@@ -195,41 +195,41 @@ export default function Profile() {
 
         <div className="space-y-8">
           {/* Daily Goal */}
-          <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Daily Goal</h2>
-            <div className="flex items-center gap-4 mb-4">
+          <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none">
+            <h2 className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-4">Daily Goal</h2>
+            <div className="flex items-center gap-4">
               <input
                 type="number"
                 min="0"
                 max="24"
                 value={dailyGoal}
                 onChange={(e) => setDailyGoal(Number(e.target.value))}
-                className="w-24 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-black text-sm"
+                className="w-24 p-3 bg-[#141414] border border-zinc-800 rounded-none focus:outline-none focus:border-[#FF5500] text-zinc-100 font-mono text-center text-xl"
               />
-              <span className="text-sm text-gray-600">hours per day</span>
+              <span className="text-sm font-mono text-zinc-500 uppercase tracking-widest">hours per day</span>
             </div>
           </div>
 
           {/* Focus Whitelist */}
-          <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Focus Whitelist</h2>
-            <p className="text-xs text-gray-500 mb-4">Enter allowed websites during focus mode (one per line).</p>
+          <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none">
+            <h2 className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-4">Focus Whitelist</h2>
+            <p className="text-xs text-zinc-500 font-serif italic mb-4">Enter allowed websites during focus mode (one per line).</p>
             <textarea
               value={whitelist}
               onChange={(e) => setWhitelist(e.target.value)}
               rows={5}
               placeholder="youtube.com&#10;google.com"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:border-black text-sm font-mono mb-4"
+              className="w-full p-4 bg-[#141414] border border-zinc-800 rounded-none focus:outline-none focus:border-[#FF5500] text-zinc-100 font-mono text-sm resize-none"
             />
           </div>
 
           {/* Save Button */}
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-4">
             <button
               onClick={handleSaveProfile}
-              className="bg-black text-white px-6 py-3 rounded-md hover:bg-gray-800 transition-colors flex items-center gap-2 font-medium"
+              className="bg-[#FF5500] text-black px-8 py-4 rounded-none hover:bg-orange-600 transition-colors flex items-center gap-3 font-mono uppercase tracking-widest text-sm"
             >
-              <Save size={18} /> Save Settings
+              <Save size={20} /> Save Settings
             </button>
           </div>
         </div>

@@ -118,18 +118,18 @@ export default function Import() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight mb-1">Import Data</h1>
-        <p className="text-gray-500 text-sm">Import historical study data from YPT (CSV or JSON).</p>
+      <div className="border-b border-zinc-800 pb-6">
+        <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Import Data</h1>
+        <p className="text-zinc-500 font-serif italic text-sm">Import historical study data from YPT (CSV or JSON).</p>
       </div>
 
-      <div className="bg-white p-6 border border-gray-200 rounded-lg shadow-sm">
+      <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none">
         <div className="flex items-center justify-center w-full mb-8">
-          <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+          <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-zinc-800 border-dashed rounded-none cursor-pointer bg-[#141414] hover:bg-zinc-900 hover:border-[#FF5500] transition-colors group">
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <Upload className="w-10 h-10 mb-3 text-gray-400" />
-              <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-              <p className="text-xs text-gray-500">CSV or JSON (date, hours)</p>
+              <Upload className="w-10 h-10 mb-3 text-zinc-500 group-hover:text-[#FF5500] transition-colors" />
+              <p className="mb-2 text-sm text-zinc-400 font-mono uppercase tracking-widest"><span className="font-bold text-zinc-100">Click to upload</span> or drag and drop</p>
+              <p className="text-xs text-zinc-500 font-mono uppercase tracking-widest">CSV or JSON (date, hours)</p>
             </div>
             <input type="file" className="hidden" accept=".csv,.json" onChange={handleFileUpload} />
           </label>
@@ -137,38 +137,38 @@ export default function Import() {
 
         {records.length > 0 && (
           <div>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Preview ({records.length} records)</h2>
+            <div className="flex justify-between items-center mb-6 border-b border-zinc-800 pb-4">
+              <h2 className="text-xl font-bold uppercase tracking-widest text-zinc-100">Preview <span className="text-[#FF5500] font-mono">({records.length})</span></h2>
               <button
                 onClick={handleImport}
                 disabled={importing}
-                className="bg-black text-white px-6 py-2 rounded-md font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                className="bg-[#FF5500] text-black px-6 py-3 font-mono uppercase tracking-widest hover:bg-orange-600 disabled:opacity-50 transition-colors"
               >
                 {importing ? 'Importing...' : 'Start Import'}
               </button>
             </div>
             
-            <div className="overflow-x-auto border border-gray-200 rounded-md">
+            <div className="overflow-x-auto border border-zinc-800 rounded-none">
               <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-[#141414] border-b border-zinc-800">
                   <tr>
-                    <th className="p-3 font-semibold text-gray-600">Date</th>
-                    <th className="p-3 font-semibold text-gray-600">Hours</th>
-                    <th className="p-3 font-semibold text-gray-600">Duration (mins)</th>
-                    <th className="p-3 font-semibold text-gray-600">Status</th>
+                    <th className="p-4 text-xs font-mono text-zinc-500 uppercase tracking-widest">Date</th>
+                    <th className="p-4 text-xs font-mono text-zinc-500 uppercase tracking-widest">Hours</th>
+                    <th className="p-4 text-xs font-mono text-zinc-500 uppercase tracking-widest">Duration (mins)</th>
+                    <th className="p-4 text-xs font-mono text-zinc-500 uppercase tracking-widest">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-zinc-800">
                   {records.map((rec, i) => (
-                    <tr key={i} className={rec.status === 'duplicate' ? 'bg-yellow-50' : rec.status === 'error' ? 'bg-red-50' : ''}>
-                      <td className="p-3">{rec.date}</td>
-                      <td className="p-3">{rec.hours}</td>
-                      <td className="p-3">{rec.duration_minutes}</td>
-                      <td className="p-3">
-                        {rec.status === 'pending' && <span className="text-gray-500">Pending</span>}
-                        {rec.status === 'success' && <span className="text-green-600 flex items-center gap-1"><CheckCircle size={14}/> Success</span>}
-                        {rec.status === 'duplicate' && <span className="text-yellow-600 flex items-center gap-1"><AlertCircle size={14}/> Duplicate</span>}
-                        {rec.status === 'error' && <span className="text-red-600 flex items-center gap-1"><AlertCircle size={14}/> Error</span>}
+                    <tr key={i} className={`hover:bg-[#141414] transition-colors ${rec.status === 'duplicate' ? 'bg-yellow-950/20' : rec.status === 'error' ? 'bg-red-950/20' : ''}`}>
+                      <td className="p-4 text-zinc-300 font-mono">{rec.date}</td>
+                      <td className="p-4 text-zinc-300 font-mono">{rec.hours}</td>
+                      <td className="p-4 text-[#FF5500] font-mono">{rec.duration_minutes}</td>
+                      <td className="p-4 font-mono uppercase tracking-widest text-xs">
+                        {rec.status === 'pending' && <span className="text-zinc-500">Pending</span>}
+                        {rec.status === 'success' && <span className="text-emerald-500 flex items-center gap-2"><CheckCircle size={14}/> Success</span>}
+                        {rec.status === 'duplicate' && <span className="text-yellow-500 flex items-center gap-2"><AlertCircle size={14}/> Duplicate</span>}
+                        {rec.status === 'error' && <span className="text-red-500 flex items-center gap-2"><AlertCircle size={14}/> Error</span>}
                       </td>
                     </tr>
                   ))}

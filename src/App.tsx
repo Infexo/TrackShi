@@ -19,7 +19,7 @@ import Import from './pages/Import';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#050505] text-[#FF5500] font-mono uppercase tracking-widest text-sm animate-pulse">Initializing...</div>;
   if (!user) return <Navigate to="/auth" />;
   return <>{children}</>;
 };
@@ -27,18 +27,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 export default function App() {
   if (!isSupabaseConfigured()) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold mb-4">Supabase Configuration Required</h1>
-          <p className="text-gray-600 mb-4">
-            Please configure your Supabase environment variables in the Secrets panel:
+      <div className="min-h-screen flex items-center justify-center bg-[#050505] p-4 text-zinc-100">
+        <div className="bg-[#0A0A0A] p-8 border border-zinc-800 max-w-md w-full text-center shadow-[0_0_30px_rgba(255,85,0,0.05)]">
+          <h1 className="text-2xl font-black uppercase tracking-tighter mb-4 text-[#FF5500]">System Error</h1>
+          <p className="text-zinc-500 font-mono text-xs uppercase tracking-widest mb-6">
+            Supabase configuration missing. Initialize environment variables:
           </p>
-          <ul className="text-left text-sm text-gray-500 bg-gray-50 p-4 rounded-md mb-4 space-y-2 font-mono">
+          <ul className="text-left text-xs text-zinc-400 bg-[#141414] border border-zinc-800 p-4 mb-6 space-y-2 font-mono">
             <li>VITE_SUPABASE_URL</li>
             <li>VITE_SUPABASE_ANON_KEY</li>
           </ul>
-          <p className="text-sm text-gray-500">
-            After adding the secrets, restart the development server.
+          <p className="text-xs text-zinc-500 font-serif italic">
+            Restart sequence required after configuration.
           </p>
         </div>
       </div>

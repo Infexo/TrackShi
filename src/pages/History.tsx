@@ -52,59 +52,59 @@ export default function History() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight mb-1">Session History</h1>
-        <p className="text-gray-500 text-sm">Review and manage your past study sessions.</p>
+      <div className="border-b border-zinc-800 pb-6">
+        <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Session History</h1>
+        <p className="text-zinc-500 font-serif italic text-sm">Review and manage your past study sessions.</p>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-[#0A0A0A] border border-zinc-800 rounded-none overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="p-4 text-sm font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-                <th className="p-4 text-sm font-semibold text-gray-600 uppercase tracking-wider">Subject</th>
-                <th className="p-4 text-sm font-semibold text-gray-600 uppercase tracking-wider">Duration</th>
-                <th className="p-4 text-sm font-semibold text-gray-600 uppercase tracking-wider">Time</th>
-                <th className="p-4 text-sm font-semibold text-gray-600 uppercase tracking-wider text-right">Actions</th>
+              <tr className="bg-[#141414] border-b border-zinc-800">
+                <th className="p-4 text-xs font-mono text-zinc-500 uppercase tracking-widest">Date</th>
+                <th className="p-4 text-xs font-mono text-zinc-500 uppercase tracking-widest">Subject</th>
+                <th className="p-4 text-xs font-mono text-zinc-500 uppercase tracking-widest">Duration</th>
+                <th className="p-4 text-xs font-mono text-zinc-500 uppercase tracking-widest">Time</th>
+                <th className="p-4 text-xs font-mono text-zinc-500 uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-zinc-800">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-gray-500">Loading...</td>
+                  <td colSpan={5} className="p-8 text-center text-zinc-500 font-mono uppercase tracking-widest text-xs animate-pulse">Loading...</td>
                 </tr>
               ) : sessions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-gray-500">No sessions found.</td>
+                  <td colSpan={5} className="p-8 text-center text-zinc-500 font-mono uppercase tracking-widest text-xs">No sessions found.</td>
                 </tr>
               ) : (
                 sessions.map((session) => (
-                  <tr key={session.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4 text-sm text-gray-900 whitespace-nowrap">
+                  <tr key={session.id} className="hover:bg-[#141414] transition-colors">
+                    <td className="p-4 text-sm text-zinc-300 font-mono whitespace-nowrap">
                       {format(new Date(session.date), 'MMM d, yyyy')}
                     </td>
-                    <td className="p-4 text-sm font-medium text-gray-900">
+                    <td className="p-4 text-sm font-bold text-zinc-100 uppercase tracking-wider">
                       {(session.subjects as any)?.name || 'Unknown'}
                     </td>
-                    <td className="p-4 text-sm text-gray-600">
+                    <td className="p-4 text-sm text-[#FF5500] font-mono">
                       {formatDuration(session.duration_minutes)}
                     </td>
-                    <td className="p-4 text-sm text-gray-500">
+                    <td className="p-4 text-sm text-zinc-500 font-mono">
                       {format(new Date(session.start_time), 'HH:mm')} - {format(new Date(session.end_time), 'HH:mm')}
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleEdit(session.id, session.duration_minutes)}
-                          className="text-gray-400 hover:text-black transition-colors p-2"
+                          className="text-zinc-500 hover:text-[#FF5500] transition-colors p-2 border border-transparent hover:border-[#FF5500]"
                           title="Edit duration"
                         >
                           <Edit2 size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(session.id)}
-                          className="text-gray-400 hover:text-red-600 transition-colors p-2"
+                          className="text-zinc-500 hover:text-red-500 transition-colors p-2 border border-transparent hover:border-red-500"
                           title="Delete session"
                         >
                           <Trash2 size={16} />
