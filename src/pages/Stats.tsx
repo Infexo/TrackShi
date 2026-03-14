@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { startOfWeek, endOfWeek, eachDayOfInterval, format, isSameDay, subDays, startOfMonth } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import { Trophy, Target, Clock, Calendar, Zap } from 'lucide-react';
 
 export default function Stats() {
@@ -13,7 +13,6 @@ export default function Stats() {
   const [dailyAvg, setDailyAvg] = useState(0);
   const [longestSession, setLongestSession] = useState(0);
   const [weeklyData, setWeeklyData] = useState<any[]>([]);
-  const [subjectData, setSubjectData] = useState<any[]>([]);
   const [monthlyTrend, setMonthlyTrend] = useState<any[]>([]);
 
   useEffect(() => {
@@ -38,6 +37,29 @@ export default function Stats() {
     if (!sessions) {
       setLoading(false);
       return;
+    }
+
+    // Check for active session to include in live stats
+    const { data: liveStatus } = await supabase
+      .from('live_status')
+      .select('*, subjects(name)')
+      .eq('user_id', user.id)
+      .single();
+
+    if (liveStatus && liveStatus.status === 'studying' && liveStatus.started_at) {
+      const startedAt = new Date(liveStatus.started_at);
+      const now = new Date();
+      const liveSecs = Math.floor((now.getTime() - startedAt.getTime()) / 1000);
+      
+      if (liveSecs > 0) {
+        sessions.push({
+          duration_minutes: Math.floor(liveSecs / 60),
+          duration_seconds: liveSecs,
+          date: format(startedAt, 'yyyy-MM-dd'),
+          subject_id: liveStatus.subject_id,
+          subjects: liveStatus.subjects
+        });
+      }
     }
 
     const totalSecs = sessions.reduce((acc, s) => acc + (s.duration_seconds || s.duration_minutes * 60), 0);
@@ -68,22 +90,6 @@ export default function Stats() {
       };
     });
     setWeeklyData(weekData);
-
-    // Subject Distribution
-    const subjectMinsMap = new Map();
-    sessions.forEach(s => {
-      const name = (s.subjects as any)?.name || 'Unknown';
-      const secs = s.duration_seconds || s.duration_minutes * 60;
-      subjectMinsMap.set(name, (subjectMinsMap.get(name) || 0) + secs);
-    });
-
-    const subData = Array.from(subjectMinsMap.entries()).map(([name, secs]) => ({
-      name,
-      value: Number((secs / 3600).toFixed(2)),
-      color: colorMap.get(name) || '#dc2626'
-    })).sort((a, b) => b.value - a.value);
-    
-    setSubjectData(subData);
 
     // Monthly Trend (Last 30 Days)
     const last30Days = Array.from({ length: 30 }).map((_, i) => subDays(new Date(), 29 - i));
@@ -138,9 +144,9 @@ export default function Stats() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {/* Weekly Activity */}
-        <div className="lg:col-span-2 bg-white p-6 border border-gray-200 rounded-xl shadow-sm">
+        <div className="bg-white p-6 border border-gray-200 rounded-xl shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-sm font-bold text-gray-700 uppercase tracking-widest">Last 7 Days Activity</h2>
             <div className="flex items-center gap-2 text-xs text-gray-400">
@@ -177,55 +183,6 @@ export default function Stats() {
                 />
               </BarChart>
             </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Subject Breakdown */}
-        <div className="bg-white p-6 border border-gray-200 rounded-xl shadow-sm flex flex-col">
-          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-widest mb-8">Subject Distribution</h2>
-          <div className="h-64 relative">
-            {subjectData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={subjectData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={5}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {subjectData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400 text-sm italic">
-                No data available
-              </div>
-            )}
-            {subjectData.length > 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-black text-gray-900">{subjectData.length}</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase">Subjects</span>
-              </div>
-            )}
-          </div>
-          <div className="mt-6 space-y-3 overflow-y-auto max-h-48 pr-2">
-            {subjectData.map((item, index) => (
-              <div key={item.name} className="flex items-center justify-between group">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                  <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">{item.name}</span>
-                </div>
-                <span className="text-sm font-bold text-gray-900">{item.value.toFixed(1)}h</span>
-              </div>
-            ))}
           </div>
         </div>
       </div>

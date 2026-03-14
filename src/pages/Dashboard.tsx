@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Flame } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
@@ -13,29 +13,124 @@ export default function Dashboard() {
   const [todaySessions, setTodaySessions] = useState<any[]>([]);
   
   // Timer State
-  const [activeSubjectId, setActiveSubjectId] = useState<string | null>(null);
-  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  const [activeSubjectId, setActiveSubjectId] = useState<string | null>(() => localStorage.getItem('activeSubjectId'));
+  const activeSubjectIdRef = useRef(activeSubjectId);
+  
+  useEffect(() => {
+    activeSubjectIdRef.current = activeSubjectId;
+  }, [activeSubjectId]);
+
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(() => {
+    const saved = localStorage.getItem('sessionStartTime');
+    return saved ? new Date(saved) : null;
+  });
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   
   const [dailyGoal, setDailyGoal] = useState(0);
   const [streak, setStreak] = useState(0);
 
   // Break Timer State
-  const [lastSessionEndTime, setLastSessionEndTime] = useState<Date | null>(null);
+  const [lastSessionEndTime, setLastSessionEndTime] = useState<Date | null>(() => {
+    const saved = localStorage.getItem('lastSessionEndTime');
+    return saved ? new Date(saved) : null;
+  });
   const [breakSeconds, setBreakSeconds] = useState(0);
 
   useEffect(() => {
     if (!user) return;
     fetchData();
+    resumeTimerFromLiveStatus();
+
+    // Listen for live_status changes to sync across tabs
+    const channel = supabase
+      .channel(`live_status_${user.id}`)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'live_status',
+        filter: `user_id=eq.${user.id}`
+      }, (payload: any) => {
+        const status = payload.new;
+        if (status && status.status === 'studying' && status.subject_id && status.started_at) {
+          if (activeSubjectIdRef.current !== status.subject_id) {
+            setActiveSubjectId(status.subject_id);
+            setSessionStartTime(new Date(status.started_at));
+          }
+        } else {
+          if (activeSubjectIdRef.current !== null) {
+            setActiveSubjectId(null);
+            setSessionStartTime(null);
+            setElapsedSeconds(0);
+            fetchData(); // Refresh sessions when a session is stopped elsewhere
+          }
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
+
+  // Persist to localStorage
+  useEffect(() => {
+    if (activeSubjectId) {
+      localStorage.setItem('activeSubjectId', activeSubjectId);
+    } else {
+      localStorage.removeItem('activeSubjectId');
+    }
+  }, [activeSubjectId]);
+
+  useEffect(() => {
+    if (sessionStartTime) {
+      localStorage.setItem('sessionStartTime', sessionStartTime.toISOString());
+    } else {
+      localStorage.removeItem('sessionStartTime');
+    }
+  }, [sessionStartTime]);
+
+  useEffect(() => {
+    if (lastSessionEndTime) {
+      localStorage.setItem('lastSessionEndTime', lastSessionEndTime.toISOString());
+    } else {
+      localStorage.removeItem('lastSessionEndTime');
+    }
+  }, [lastSessionEndTime]);
+
+  const resumeTimerFromLiveStatus = async () => {
+    if (!user) return;
+    const { data: status } = await supabase
+      .from('live_status')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (status && status.status === 'studying' && status.subject_id && status.started_at) {
+      const startedAt = new Date(status.started_at);
+      // Only resume if it's from today (logical day)
+      const { start, end } = getLogicalDayRange();
+      if (startedAt >= start && startedAt <= end) {
+        setActiveSubjectId(status.subject_id);
+        setSessionStartTime(startedAt);
+      } else {
+        // Stale session from yesterday, clear it
+        await supabase.from('live_status').upsert({ user_id: user.id, status: 'offline', subject_id: null, started_at: null });
+        localStorage.removeItem('activeSubjectId');
+        localStorage.removeItem('sessionStartTime');
+      }
+    }
+  };
 
   // Interval for active timer
   useEffect(() => {
     let interval: number;
     if (activeSubjectId && sessionStartTime) {
+      setElapsedSeconds(Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000));
       interval = window.setInterval(() => {
         setElapsedSeconds(Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000));
       }, 1000);
+    } else {
+      setElapsedSeconds(0);
     }
     return () => clearInterval(interval);
   }, [activeSubjectId, sessionStartTime]);
@@ -146,7 +241,6 @@ export default function Dashboard() {
       fetchData(); // refresh todaySessions
     } else {
       console.error("Error saving session:", error);
-      alert("Error saving session. Please run the SQL command to add duration_seconds.");
       // Revert optimistic update
       setTodaySessions(prev => prev.filter(s => s.id !== newSession.id));
     }
@@ -157,16 +251,21 @@ export default function Dashboard() {
     
     if (activeSubjectId === subjectId) {
       // Stop current
-      await saveSession(activeSubjectId, sessionStartTime!, now, elapsedSeconds);
+      const currentActive = activeSubjectId;
+      const currentStart = sessionStartTime!;
+      const currentElapsed = elapsedSeconds;
+      
       setActiveSubjectId(null);
       setSessionStartTime(null);
       setElapsedSeconds(0);
       setLastSessionEndTime(now);
-      await supabase.from('live_status').upsert({ user_id: user!.id, status: 'offline', subject_id: null, started_at: null });
+      
+      saveSession(currentActive, currentStart, now, currentElapsed);
+      supabase.from('live_status').upsert({ user_id: user!.id, status: 'offline', subject_id: null, started_at: null });
     } else {
       // If another is running, stop it first
       if (activeSubjectId && sessionStartTime) {
-        await saveSession(activeSubjectId, sessionStartTime, now, elapsedSeconds);
+        saveSession(activeSubjectId, sessionStartTime, now, elapsedSeconds);
       }
       // Start new
       setActiveSubjectId(subjectId);
@@ -174,7 +273,7 @@ export default function Dashboard() {
       setElapsedSeconds(0);
       setLastSessionEndTime(null);
       setBreakSeconds(0);
-      await supabase.from('live_status').upsert({ user_id: user!.id, status: 'studying', subject_id: subjectId, started_at: now.toISOString() });
+      supabase.from('live_status').upsert({ user_id: user!.id, status: 'studying', subject_id: subjectId, started_at: now.toISOString() });
     }
   };
 
