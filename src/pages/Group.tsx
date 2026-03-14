@@ -203,11 +203,12 @@ export default function Group() {
 
   const getStudyTag = (seconds: number) => {
     const hours = seconds / 3600;
-    if (hours < 2) return 'Alimaxxer';
-    if (hours < 5) return 'Avgmaxxer';
-    if (hours < 7) return 'Amaanmaxxer';
-    if (hours < 10) return 'Geganege';
-    return 'Tetrachad';
+    if (hours < 2) return 'sameem';
+    if (hours < 4) return 'ali';
+    if (hours < 6) return 'arij';
+    if (hours < 8) return 'hashim';
+    if (hours < 10) return 'amaan';
+    return 'muzaib';
   };
 
   if (loading) {
