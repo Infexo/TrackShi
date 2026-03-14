@@ -7,6 +7,8 @@ import { Trash2, Edit2 } from 'lucide-react';
 export default function History() {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,6 +25,13 @@ export default function History() {
       .order('start_time', { ascending: false });
     
     if (data) setSessions(data);
+
+    const { data: subData } = await supabase
+      .from('subjects')
+      .select('id, name')
+      .eq('user_id', user.id);
+    if (subData) setSubjects(subData);
+
     setLoading(false);
   };
 
@@ -54,11 +63,30 @@ export default function History() {
     return `${h}h ${m}m`;
   };
 
+  const filteredSessions = selectedSubject === 'all' 
+    ? sessions 
+    : sessions.filter(s => s.subject_id === selectedSubject);
+
   return (
     <div className="space-y-8">
-      <div className="border-b border-zinc-800 pb-6">
-        <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Session History</h1>
-        <p className="text-zinc-500 font-serif italic text-sm">Review and manage your past study sessions.</p>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-zinc-800 pb-6">
+        <div>
+          <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Session History</h1>
+          <p className="text-zinc-500 font-serif italic text-sm">Review and manage your past study sessions.</p>
+        </div>
+        <div>
+          <label className="block text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">Filter by Subject</label>
+          <select
+            value={selectedSubject}
+            onChange={(e) => setSelectedSubject(e.target.value)}
+            className="w-full sm:w-auto bg-[#141414] border border-zinc-800 text-zinc-100 font-mono text-sm p-2 rounded-none focus:outline-none focus:border-[#FF5500] transition-colors uppercase"
+          >
+            <option value="all">ALL SUBJECTS</option>
+            {subjects.map(sub => (
+              <option key={sub.id} value={sub.id}>{sub.name.toUpperCase()}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="bg-[#0A0A0A] border border-zinc-800 rounded-none overflow-hidden">
@@ -78,15 +106,15 @@ export default function History() {
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-zinc-500 font-mono uppercase tracking-widest text-xs animate-pulse">Loading...</td>
                 </tr>
-              ) : sessions.length === 0 ? (
+              ) : filteredSessions.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-zinc-500 font-mono uppercase tracking-widest text-xs">No sessions found.</td>
                 </tr>
               ) : (
-                sessions.map((session) => (
+                filteredSessions.map((session) => (
                   <tr key={session.id} className="hover:bg-[#141414] transition-colors">
                     <td className="p-4 text-sm text-zinc-300 font-mono whitespace-nowrap">
-                      {format(new Date(session.date), 'MMM d, yyyy')}
+                      {format(new Date(session.start_time), 'MMM d, yyyy')}
                     </td>
                     <td className="p-4 text-sm font-bold text-zinc-100 uppercase tracking-wider">
                       {(session.subjects as any)?.name || 'Unknown'}
@@ -95,23 +123,23 @@ export default function History() {
                       {formatDuration(session.duration_minutes, session.duration_seconds)}
                     </td>
                     <td className="p-4 text-sm text-zinc-500 font-mono">
-                      {format(new Date(session.start_time), 'HH:mm')} - {format(new Date(session.end_time), 'HH:mm')}
+                      {format(new Date(session.start_time), 'HH:mm')} &rarr; {format(new Date(session.end_time), 'HH:mm')}
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleEdit(session.id, session.duration_minutes)}
-                          className="text-zinc-500 hover:text-[#FF5500] transition-colors p-2 border border-transparent hover:border-[#FF5500]"
+                          className="flex items-center gap-1.5 bg-transparent border border-zinc-700 text-zinc-400 hover:bg-[#FF5500] hover:text-black hover:border-[#FF5500] transition-colors px-3 py-1.5 text-xs font-mono uppercase tracking-widest"
                           title="Edit duration"
                         >
-                          <Edit2 size={16} />
+                          <Edit2 size={14} /> Edit
                         </button>
                         <button
                           onClick={() => handleDelete(session.id)}
-                          className="text-zinc-500 hover:text-red-500 transition-colors p-2 border border-transparent hover:border-red-500"
+                          className="flex items-center gap-1.5 bg-transparent border border-zinc-700 text-zinc-400 hover:bg-red-600 hover:text-black hover:border-red-600 transition-colors px-3 py-1.5 text-xs font-mono uppercase tracking-widest"
                           title="Delete session"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={14} /> Delete
                         </button>
                       </div>
                     </td>
