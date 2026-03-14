@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import Papa from 'papaparse';
-import { Upload, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { GoogleGenAI, Type } from '@google/genai';
 
 type ImportRecord = {
   date: string;
@@ -16,15 +17,89 @@ export default function Import() {
   const [records, setRecords] = useState<ImportRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [aiParsing, setAiParsing] = useState(false);
 
   const parseHours = (hoursStr: string) => {
     const [h, m] = hoursStr.split(':').map(Number);
     return (h || 0) * 60 + (m || 0);
   };
 
+  const handleImageUpload = async (file: File) => {
+    setAiParsing(true);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64Data = reader.result?.toString().split(',')[1];
+        if (!base64Data) throw new Error("Failed to read image");
+
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        
+        const response = await ai.models.generateContent({
+          model: "gemini-3-flash-preview",
+          contents: {
+            parts: [
+              {
+                inlineData: {
+                  mimeType: file.type,
+                  data: base64Data
+                }
+              },
+              {
+                text: "Extract the study dates and total study durations from this screenshot of a study tracking app. Return the data as a JSON array of objects. Each object must have a 'date' field in YYYY-MM-DD format, and an 'hours' field in HH:MM format (e.g., '02:30' for 2 hours and 30 minutes). Only return the JSON array."
+              }
+            ]
+          },
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  date: {
+                    type: Type.STRING,
+                    description: "The date in YYYY-MM-DD format"
+                  },
+                  hours: {
+                    type: Type.STRING,
+                    description: "The duration in HH:MM format"
+                  }
+                },
+                required: ["date", "hours"]
+              }
+            }
+          }
+        });
+
+        const jsonStr = response.text?.trim() || "[]";
+        const parsedData = JSON.parse(jsonStr);
+        
+        const newRecords = parsedData.map((row: any) => ({
+          date: row.date,
+          hours: row.hours,
+          duration_minutes: parseHours(row.hours),
+          status: 'pending' as const
+        }));
+        
+        setRecords(newRecords);
+        setAiParsing(false);
+      };
+    } catch (error) {
+      console.error("Error parsing image:", error);
+      alert("Failed to extract data from the image. Please try a clearer screenshot.");
+      setAiParsing(false);
+    }
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.type.startsWith('image/')) {
+      handleImageUpload(file);
+      return;
+    }
 
     setLoading(true);
 
@@ -62,7 +137,7 @@ export default function Import() {
       };
       reader.readAsText(file);
     } else {
-      alert('Please upload a CSV or JSON file.');
+      alert('Please upload a CSV, JSON, or Image file.');
       setLoading(false);
     }
   };
@@ -120,18 +195,33 @@ export default function Import() {
     <div className="space-y-8">
       <div className="border-b border-zinc-800 pb-6">
         <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Import Data</h1>
-        <p className="text-zinc-500 font-serif italic text-sm">Import historical study data from YPT (CSV or JSON).</p>
+        <p className="text-zinc-500 font-serif italic text-sm">Import historical study data from YPT (CSV, JSON, or Screenshot).</p>
       </div>
 
       <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none">
         <div className="flex items-center justify-center w-full mb-8">
-          <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-zinc-800 border-dashed rounded-none cursor-pointer bg-[#141414] hover:bg-zinc-900 hover:border-[#FF5500] transition-colors group">
+          <label className={`flex flex-col items-center justify-center w-full h-64 border-2 border-zinc-800 border-dashed rounded-none cursor-pointer bg-[#141414] hover:bg-zinc-900 hover:border-[#FF5500] transition-colors group ${aiParsing ? 'opacity-50 pointer-events-none' : ''}`}>
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <Upload className="w-10 h-10 mb-3 text-zinc-500 group-hover:text-[#FF5500] transition-colors" />
-              <p className="mb-2 text-sm text-zinc-400 font-mono uppercase tracking-widest"><span className="font-bold text-zinc-100">Click to upload</span> or drag and drop</p>
-              <p className="text-xs text-zinc-500 font-mono uppercase tracking-widest">CSV or JSON (date, hours)</p>
+              {aiParsing ? (
+                <Loader2 className="w-10 h-10 mb-3 text-[#FF5500] animate-spin" />
+              ) : (
+                <div className="flex gap-4 mb-3">
+                  <Upload className="w-10 h-10 text-zinc-500 group-hover:text-[#FF5500] transition-colors" />
+                  <ImageIcon className="w-10 h-10 text-zinc-500 group-hover:text-[#FF5500] transition-colors" />
+                </div>
+              )}
+              <p className="mb-2 text-sm text-zinc-400 font-mono uppercase tracking-widest">
+                {aiParsing ? (
+                  <span className="font-bold text-[#FF5500]">AI is analyzing screenshot...</span>
+                ) : (
+                  <><span className="font-bold text-zinc-100">Click to upload</span> or drag and drop</>
+                )}
+              </p>
+              <p className="text-xs text-zinc-500 font-mono uppercase tracking-widest text-center max-w-xs">
+                CSV, JSON, or Screenshot of your study stats
+              </p>
             </div>
-            <input type="file" className="hidden" accept=".csv,.json" onChange={handleFileUpload} />
+            <input type="file" className="hidden" accept=".csv,.json,image/*" onChange={handleFileUpload} disabled={aiParsing} />
           </label>
         </div>
 
