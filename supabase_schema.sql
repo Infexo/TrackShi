@@ -81,9 +81,10 @@ create policy "Users can insert their own profile" on public.profiles for insert
 drop policy if exists "Users can update own profile" on public.profiles;
 create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
 
--- Subjects: Users can only see and manage their own subjects
+-- Subjects: Users can view all subjects (for group stats) but only manage their own
 drop policy if exists "Users can view own subjects" on public.subjects;
-create policy "Users can view own subjects" on public.subjects for select using (auth.uid() = user_id);
+drop policy if exists "Subjects are viewable by everyone" on public.subjects;
+create policy "Subjects are viewable by everyone" on public.subjects for select using (true);
 
 drop policy if exists "Users can insert own subjects" on public.subjects;
 create policy "Users can insert own subjects" on public.subjects for insert with check (auth.uid() = user_id);
