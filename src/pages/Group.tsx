@@ -180,105 +180,106 @@ export default function Group() {
         .eq('group_name', currentGroupName);
 
       if (profilesError) throw profilesError;
-      if (!profiles) {
+      if (!profiles || profiles.length === 0) {
         setMembers([]);
         setLoading(false);
         return;
       }
 
+      const memberIds = profiles.map(p => p.id);
       const { start: todayStart, end: todayEnd } = getLogicalDayRange();
       const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
       const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
       const todayStr = format(new Date(), 'yyyy-MM-dd');
 
-      const memberData: GroupMember[] = await Promise.all(
-        profiles.map(async (p) => {
-          const { data: statusData } = await supabase
-            .from('live_status')
-            .select('status, subject_id, started_at')
-            .eq('user_id', p.id)
-            .single();
+      // Bulk fetch data
+      const [
+        { data: liveStatuses },
+        { data: todaySessions },
+        { data: weekSessions },
+        { data: todoImages },
+        { data: allSubjects }
+      ] = await Promise.all([
+        supabase.from('live_status').select('user_id, status, subject_id, started_at').in('user_id', memberIds),
+        supabase.from('sessions').select('user_id, duration_minutes, duration_seconds, subjects(name, color)').in('user_id', memberIds).gte('start_time', todayStart.toISOString()).lte('start_time', todayEnd.toISOString()),
+        supabase.from('sessions').select('user_id, duration_minutes, duration_seconds').in('user_id', memberIds).gte('start_time', weekStart.toISOString()).lte('start_time', weekEnd.toISOString()),
+        supabase.from('todo_images').select('user_id, image_url').in('user_id', memberIds).eq('date', todayStr),
+        supabase.from('subjects').select('id, name, color').in('user_id', memberIds)
+      ]);
 
-          let subjectName = null;
-          if (statusData?.subject_id) {
-            const { data: subject } = await supabase
-              .from('subjects')
-              .select('name')
-              .eq('id', statusData.subject_id)
-              .single();
-            subjectName = subject?.name;
+      const memberData: GroupMember[] = profiles.map((p) => {
+        const statusData = liveStatuses?.find(s => s.user_id === p.id);
+        const pTodaySessions = todaySessions?.filter(s => s.user_id === p.id) || [];
+        const pWeekSessions = weekSessions?.filter(s => s.user_id === p.id) || [];
+        const todoImage = todoImages?.find(t => t.user_id === p.id);
+        
+        let liveSubjectName = null;
+        let liveSubjectColor = '#52525b';
+        if (statusData?.subject_id) {
+          const subject = allSubjects?.find(s => s.id === statusData.subject_id);
+          liveSubjectName = subject?.name;
+          liveSubjectColor = subject?.color || '#52525b';
+        }
+
+        let todaySeconds = 0;
+        const subjectMap = new Map();
+
+        pTodaySessions.forEach(s => {
+          const sessionSeconds = s.duration_seconds || (s.duration_minutes * 60);
+          todaySeconds += sessionSeconds;
+
+          const subjectData = Array.isArray(s.subjects) ? s.subjects[0] : s.subjects;
+          const sName = subjectData?.name || 'Unknown';
+          const sColor = subjectData?.color || '#52525b';
+
+          if (subjectMap.has(sName)) {
+            const existing = subjectMap.get(sName);
+            subjectMap.set(sName, {
+              ...existing,
+              seconds: existing.seconds + sessionSeconds
+            });
+          } else {
+            subjectMap.set(sName, {
+              name: sName,
+              color: sColor,
+              seconds: sessionSeconds
+            });
           }
+        });
 
-          const { data: todaySessions } = await supabase
-            .from('sessions')
-            .select(`
-              duration_minutes, 
-              duration_seconds,
-              subjects (
-                name,
-                color
-              )
-            `)
-            .eq('user_id', p.id)
-            .gte('start_time', todayStart.toISOString())
-            .lte('start_time', todayEnd.toISOString());
+        if (statusData?.status === 'studying' && statusData?.started_at) {
+          const liveSeconds = Math.floor((new Date().getTime() - new Date(statusData.started_at).getTime()) / 1000);
+          const sName = liveSubjectName || 'Unknown';
+          if (subjectMap.has(sName)) {
+            const existing = subjectMap.get(sName);
+            subjectMap.set(sName, {
+              ...existing,
+              seconds: existing.seconds + liveSeconds
+            });
+          } else {
+            subjectMap.set(sName, {
+              name: sName,
+              color: liveSubjectColor,
+              seconds: liveSeconds
+            });
+          }
+        }
 
-          const { data: weekSessions } = await supabase
-            .from('sessions')
-            .select('duration_minutes, duration_seconds')
-            .eq('user_id', p.id)
-            .gte('start_time', weekStart.toISOString())
-            .lte('start_time', weekEnd.toISOString());
+        const todaySubjects = Array.from(subjectMap.values()).sort((a, b) => b.seconds - a.seconds);
+        const weekSeconds = pWeekSessions.reduce((acc, s) => acc + (s.duration_seconds || s.duration_minutes * 60), 0) || 0;
 
-          const { data: todoImage } = await supabase
-            .from('todo_images')
-            .select('image_url')
-            .eq('user_id', p.id)
-            .eq('date', todayStr)
-            .single();
-
-          let todaySeconds = 0;
-          const subjectMap = new Map();
-
-          todaySessions?.forEach(s => {
-            const sessionSeconds = s.duration_seconds || (s.duration_minutes * 60);
-            todaySeconds += sessionSeconds;
-
-            const subjectName = s.subjects?.name || 'Unknown';
-            const subjectColor = s.subjects?.color || '#52525b';
-
-            if (subjectMap.has(subjectName)) {
-              const existing = subjectMap.get(subjectName);
-              subjectMap.set(subjectName, {
-                ...existing,
-                seconds: existing.seconds + sessionSeconds
-              });
-            } else {
-              subjectMap.set(subjectName, {
-                name: subjectName,
-                color: subjectColor,
-                seconds: sessionSeconds
-              });
-            }
-          });
-
-          const todaySubjects = Array.from(subjectMap.values()).sort((a, b) => b.seconds - a.seconds);
-
-          const weekSeconds = weekSessions?.reduce((acc, s) => acc + (s.duration_seconds || s.duration_minutes * 60), 0) || 0;
-
-          return {
-            id: p.id,
-            name: p.full_name || 'Unknown User',
-            status: statusData?.status || 'offline',
-            subject_name: subjectName,
-            started_at: statusData?.started_at,
-            today_seconds: todaySeconds,
-            week_seconds: weekSeconds,
-            todo_image_url: todoImage?.image_url || null,
-            today_subjects: todaySubjects,
-          };
-        })
-      );
+        return {
+          id: p.id,
+          name: p.full_name || 'Unknown User',
+          status: statusData?.status || 'offline',
+          subject_name: liveSubjectName,
+          started_at: statusData?.started_at,
+          today_seconds: todaySeconds,
+          week_seconds: weekSeconds,
+          todo_image_url: todoImage?.image_url || null,
+          today_subjects: todaySubjects,
+        };
+      });
 
       memberData.sort((a, b) => b.today_seconds - a.today_seconds);
       setMembers(memberData);
@@ -326,8 +327,10 @@ export default function Group() {
   };
 
   const formatDuration = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
+    if (h === 0) return `${m}m`;
     return `${h}h ${m}m`;
   };
 
@@ -423,6 +426,19 @@ export default function Group() {
                               </>
                             )}
                           </div>
+                          
+                          {/* Subject Breakdown directly on the card */}
+                          {m.today_subjects.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {m.today_subjects.map((sub, idx) => (
+                                <div key={idx} className="flex items-center gap-1.5 bg-[#141414] border border-zinc-800 px-2 py-1 rounded-sm">
+                                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: sub.color }}></div>
+                                  <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">{sub.name}</span>
+                                  <span className="text-[10px] font-mono text-[#FF5500]">{formatDuration(sub.seconds)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-6">
@@ -441,41 +457,6 @@ export default function Group() {
                     </div>
                     {expandedMemberId === m.id && (
                       <div className="bg-[#0A0A0A] border-t border-zinc-800">
-                        {(m.today_subjects.length > 0 || (m.status === 'studying' && m.subject_name)) && (
-                          <div className="p-4 border-b border-zinc-800">
-                            <h4 className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-3">Today's Subjects</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              {m.today_subjects.map((sub, idx) => {
-                                let displaySeconds = sub.seconds;
-                                if (m.status === 'studying' && m.subject_name === sub.name && m.started_at) {
-                                  displaySeconds += getLiveDurationSeconds(m.started_at);
-                                }
-                                return (
-                                  <div key={idx} className="bg-[#141414] border border-zinc-800 p-2 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: sub.color }}></div>
-                                      <span className="font-mono text-xs text-zinc-300 truncate max-w-[120px]">{sub.name}</span>
-                                    </div>
-                                    <span className="font-mono text-[#FF5500] text-xs">
-                                      {formatDuration(displaySeconds)}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                              {m.status === 'studying' && m.subject_name && !m.today_subjects.find(s => s.name === m.subject_name) && (
-                                <div className="bg-[#141414] border border-zinc-800 p-2 flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-[#FF5500] animate-pulse"></div>
-                                    <span className="font-mono text-xs text-zinc-300 truncate max-w-[120px]">{m.subject_name}</span>
-                                  </div>
-                                  <span className="font-mono text-[#FF5500] text-xs">
-                                    {m.started_at ? formatDuration(getLiveDurationSeconds(m.started_at)) : '0h 0m'}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
                         <MiniCalendar userId={m.id} />
                       </div>
                     )}

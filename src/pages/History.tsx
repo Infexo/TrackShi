@@ -82,7 +82,7 @@ export default function History() {
     return acc;
   }, {} as Record<string, { date: string, sessions: any[], totalSeconds: number, rawDate: number }>);
 
-  const sortedDates = Object.values(groupedSessions).sort((a, b) => b.rawDate - a.rawDate);
+  const sortedDates = (Object.values(groupedSessions) as { date: string, sessions: any[], totalSeconds: number, rawDate: number }[]).sort((a, b) => b.rawDate - a.rawDate);
 
   return (
     <div className="space-y-8">
