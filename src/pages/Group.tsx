@@ -15,6 +15,7 @@ type GroupMember = {
   today_seconds: number;
   week_seconds: number;
   todo_image_url: string | null;
+  today_subjects: { name: string; color: string; seconds: number }[];
 };
 
 function MiniCalendar({ userId }: { userId: string }) {
@@ -210,7 +211,14 @@ export default function Group() {
 
           const { data: todaySessions } = await supabase
             .from('sessions')
-            .select('duration_minutes, duration_seconds')
+            .select(`
+              duration_minutes, 
+              duration_seconds,
+              subjects (
+                name,
+                color
+              )
+            `)
             .eq('user_id', p.id)
             .gte('start_time', todayStart.toISOString())
             .lte('start_time', todayEnd.toISOString());
@@ -229,7 +237,33 @@ export default function Group() {
             .eq('date', todayStr)
             .single();
 
-          const todaySeconds = todaySessions?.reduce((acc, s) => acc + (s.duration_seconds || s.duration_minutes * 60), 0) || 0;
+          let todaySeconds = 0;
+          const subjectMap = new Map();
+
+          todaySessions?.forEach(s => {
+            const sessionSeconds = s.duration_seconds || (s.duration_minutes * 60);
+            todaySeconds += sessionSeconds;
+
+            const subjectName = s.subjects?.name || 'Unknown';
+            const subjectColor = s.subjects?.color || '#52525b';
+
+            if (subjectMap.has(subjectName)) {
+              const existing = subjectMap.get(subjectName);
+              subjectMap.set(subjectName, {
+                ...existing,
+                seconds: existing.seconds + sessionSeconds
+              });
+            } else {
+              subjectMap.set(subjectName, {
+                name: subjectName,
+                color: subjectColor,
+                seconds: sessionSeconds
+              });
+            }
+          });
+
+          const todaySubjects = Array.from(subjectMap.values()).sort((a, b) => b.seconds - a.seconds);
+
           const weekSeconds = weekSessions?.reduce((acc, s) => acc + (s.duration_seconds || s.duration_minutes * 60), 0) || 0;
 
           return {
@@ -241,6 +275,7 @@ export default function Group() {
             today_seconds: todaySeconds,
             week_seconds: weekSeconds,
             todo_image_url: todoImage?.image_url || null,
+            today_subjects: todaySubjects,
           };
         })
       );
@@ -405,7 +440,44 @@ export default function Group() {
                       </div>
                     </div>
                     {expandedMemberId === m.id && (
-                      <MiniCalendar userId={m.id} />
+                      <div className="bg-[#0A0A0A] border-t border-zinc-800">
+                        {(m.today_subjects.length > 0 || (m.status === 'studying' && m.subject_name)) && (
+                          <div className="p-4 border-b border-zinc-800">
+                            <h4 className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-3">Today's Subjects</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {m.today_subjects.map((sub, idx) => {
+                                let displaySeconds = sub.seconds;
+                                if (m.status === 'studying' && m.subject_name === sub.name && m.started_at) {
+                                  displaySeconds += getLiveDurationSeconds(m.started_at);
+                                }
+                                return (
+                                  <div key={idx} className="bg-[#141414] border border-zinc-800 p-2 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: sub.color }}></div>
+                                      <span className="font-mono text-xs text-zinc-300 truncate max-w-[120px]">{sub.name}</span>
+                                    </div>
+                                    <span className="font-mono text-[#FF5500] text-xs">
+                                      {formatDuration(displaySeconds)}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                              {m.status === 'studying' && m.subject_name && !m.today_subjects.find(s => s.name === m.subject_name) && (
+                                <div className="bg-[#141414] border border-zinc-800 p-2 flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-[#FF5500] animate-pulse"></div>
+                                    <span className="font-mono text-xs text-zinc-300 truncate max-w-[120px]">{m.subject_name}</span>
+                                  </div>
+                                  <span className="font-mono text-[#FF5500] text-xs">
+                                    {m.started_at ? formatDuration(getLiveDurationSeconds(m.started_at)) : '0h 0m'}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        <MiniCalendar userId={m.id} />
+                      </div>
                     )}
                   </div>
                 ))
