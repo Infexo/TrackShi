@@ -28,7 +28,13 @@ export default function Auth() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            emailRedirectTo: 'https://trackshi.vercel.app'
+          }
+        });
         if (error) throw error;
         alert('Check your email for the login link!');
       }

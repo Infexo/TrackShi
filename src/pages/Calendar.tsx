@@ -20,6 +20,7 @@ export default function Calendar() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedDayHours, setSelectedDayHours] = useState(0);
+  const [selectedDaySubjects, setSelectedDaySubjects] = useState<any[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   useEffect(() => {
@@ -36,7 +37,15 @@ export default function Calendar() {
 
     const { data } = await supabase
       .from('sessions')
-      .select('date, duration_minutes, duration_seconds')
+      .select(`
+        date, 
+        duration_minutes, 
+        duration_seconds,
+        subjects (
+          name,
+          color
+        )
+      `)
       .eq('user_id', user.id)
       .gte('date', startDate.toISOString())
       .lte('date', endDate.toISOString());
@@ -56,8 +65,34 @@ export default function Calendar() {
   const handleDayClick = (date: Date) => {
     setSelectedDate(date);
     const daySessions = sessions.filter((s) => isSameDay(new Date(s.date), date));
-    const totalSeconds = daySessions.reduce((acc, s) => acc + (s.duration_seconds || s.duration_minutes * 60), 0);
+    
+    let totalSeconds = 0;
+    const subjectMap = new Map();
+
+    daySessions.forEach(s => {
+      const sessionSeconds = s.duration_seconds || (s.duration_minutes * 60);
+      totalSeconds += sessionSeconds;
+
+      const subjectName = s.subjects?.name || 'Unknown';
+      const subjectColor = s.subjects?.color || '#52525b'; // zinc-500 default
+
+      if (subjectMap.has(subjectName)) {
+        const existing = subjectMap.get(subjectName);
+        subjectMap.set(subjectName, {
+          ...existing,
+          seconds: existing.seconds + sessionSeconds
+        });
+      } else {
+        subjectMap.set(subjectName, {
+          name: subjectName,
+          color: subjectColor,
+          seconds: sessionSeconds
+        });
+      }
+    });
+
     setSelectedDayHours(totalSeconds / 3600);
+    setSelectedDaySubjects(Array.from(subjectMap.values()).sort((a, b) => b.seconds - a.seconds));
   };
 
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -174,10 +209,40 @@ export default function Calendar() {
 
       {selectedDate && (
         <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none">
-          <h3 className="text-sm font-mono text-zinc-500 uppercase tracking-widest mb-2">{format(selectedDate, 'MMMM d, yyyy')}</h3>
-          <p className="text-3xl font-mono tracking-tighter text-zinc-100">
-            {Math.floor(selectedDayHours)}<span className="text-xl text-zinc-500">h</span> {Math.round((selectedDayHours % 1) * 60)}<span className="text-xl text-zinc-500">m</span>
-          </p>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+            <div>
+              <h3 className="text-sm font-mono text-zinc-500 uppercase tracking-widest mb-2">{format(selectedDate, 'MMMM d, yyyy')}</h3>
+              <p className="text-3xl font-mono tracking-tighter text-zinc-100">
+                {Math.floor(selectedDayHours)}<span className="text-xl text-zinc-500">h</span> {Math.round((selectedDayHours % 1) * 60)}<span className="text-xl text-zinc-500">m</span>
+              </p>
+            </div>
+          </div>
+
+          {selectedDaySubjects.length > 0 ? (
+            <div className="space-y-4">
+              <h4 className="text-xs font-mono text-zinc-500 uppercase tracking-widest border-b border-zinc-800 pb-2">Subject Breakdown</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {selectedDaySubjects.map((subject, idx) => (
+                  <div key={idx} className="bg-[#141414] border border-zinc-800 p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: subject.color }}
+                      ></div>
+                      <span className="font-mono text-sm text-zinc-300 truncate max-w-[120px]">{subject.name}</span>
+                    </div>
+                    <span className="font-mono text-[#FF5500] text-sm">
+                      {Math.floor(subject.seconds / 3600)}h {Math.floor((subject.seconds % 3600) / 60)}m
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-zinc-500 font-serif italic text-sm border-t border-zinc-800 pt-4">
+              No study sessions recorded for this day.
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -23,7 +23,7 @@ export default function Layout() {
     <div className="flex h-screen bg-[#050505] text-zinc-100 font-sans overflow-hidden">
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-[#0A0A0A] border-b border-zinc-800 flex items-center justify-between px-4 z-50">
-        <h1 className="text-2xl font-black tracking-tighter text-[#FF5500] uppercase">
+        <h1 className="text-2xl font-black tracking-tighter text-zinc-100 uppercase">
           TS
         </h1>
         <button 
@@ -43,7 +43,7 @@ export default function Layout() {
         pt-16 md:pt-0
       `}>
         <div className="hidden md:block p-6 border-b border-zinc-800">
-          <h1 className="text-4xl font-black tracking-tighter text-[#FF5500] uppercase">
+          <h1 className="text-4xl font-black tracking-tighter text-zinc-100 uppercase">
             TS
           </h1>
         </div>
@@ -58,7 +58,7 @@ export default function Layout() {
                 onClick={closeMobileMenu}
                 className={`flex items-center gap-3 px-3 py-3 rounded-none border text-sm font-mono uppercase tracking-widest transition-all ${
                   isActive
-                    ? 'bg-[#FF5500] text-black border-[#FF5500]'
+                    ? 'bg-zinc-100 text-black border-zinc-100'
                     : 'bg-transparent text-zinc-500 border-transparent hover:border-zinc-700 hover:text-zinc-100'
                 }`}
               >

@@ -19,7 +19,13 @@ import Import from './pages/Import';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#050505] text-[#FF5500] font-mono uppercase tracking-widest text-sm animate-pulse">Initializing...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+        <div className="w-12 h-12 border-4 border-zinc-800 border-t-[#FF5500] rounded-full animate-spin"></div>
+      </div>
+    );
+  }
   if (!user) return <Navigate to="/auth" />;
   return <>{children}</>;
 };
