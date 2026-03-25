@@ -16,22 +16,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        if (error.message === 'The lock request is aborted') {
+        if (error.message.includes('lock request is aborted')) {
           // Ignore this error, it happens in React Strict Mode or when multiple tabs are open
           setLoading(false);
           return;
         }
         console.error('Auth session error:', error.message);
-        supabase.auth.signOut();
-        setUser(null);
+        if (error.message.includes('Refresh Token Not Found') || error.message.includes('Invalid Refresh Token')) {
+          supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+          setUser(null);
+        }
       } else {
         setUser(session?.user ?? null);
       }
       setLoading(false);
+    }).catch(err => {
+      console.error('Unexpected auth error:', err);
+      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESH_FAILED' as any) {
+        if (event === 'TOKEN_REFRESH_FAILED' as any) {
+          supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+        }
         setUser(null);
       } else if (session) {
         setUser(session.user);

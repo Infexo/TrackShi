@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Clock, Users, Calendar as CalendarIcon, BarChart2, History, Settings, LogOut, Upload, Menu, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import GlobalTimer from './GlobalTimer';
 
 export default function Layout() {
   const location = useLocation();
@@ -93,6 +94,8 @@ export default function Layout() {
           <Outlet />
         </div>
       </main>
+      
+      <GlobalTimer />
     </div>
   );
 }
