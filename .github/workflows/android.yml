@@ -15,7 +15,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '22'  # <-- Updated to Node 22
+        node-version: '22'
 
     - name: Install Dependencies
       run: npm install
@@ -34,6 +34,11 @@ jobs:
 
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
+
+    # --- THIS IS THE NEW STEP THAT FIXES ERROR 126 ---
+    - name: Make gradlew executable
+      working-directory: ./android
+      run: chmod +x ./gradlew
 
     - name: Build APK
       working-directory: ./android
