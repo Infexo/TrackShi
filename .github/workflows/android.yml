@@ -35,7 +35,11 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    # --- THIS IS THE NEW STEP THAT FIXES ERROR 126 ---
+    # --- THIS NEW STEP FIXES THE CORRUPT JAR FILE ---
+    - name: Fix Corrupted Gradle Wrapper
+      working-directory: ./android
+      run: gradle wrapper
+
     - name: Make gradlew executable
       working-directory: ./android
       run: chmod +x ./gradlew
