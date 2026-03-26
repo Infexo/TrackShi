@@ -31,12 +31,9 @@ public class FloatingWidgetService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             String timerText = intent.getStringExtra("timerText");
-            String subjectName = intent.getStringExtra("subjectName");
             if (mFloatingWidget != null) {
                 TextView timerView = mFloatingWidget.findViewById(1001);
-                TextView subjectView = mFloatingWidget.findViewById(1002);
                 if (timerText != null) timerView.setText(timerText);
-                if (subjectName != null) subjectView.setText(subjectName);
             }
         }
         return START_STICKY;
@@ -46,35 +43,26 @@ public class FloatingWidgetService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        // Create the floating view programmatically to avoid needing XML layouts
+        // Create the floating view programmatically
         mFloatingWidget = new LinearLayout(this);
         LinearLayout layout = (LinearLayout) mFloatingWidget;
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setBackgroundColor(Color.parseColor("#FF5500"));
-        layout.setPadding(30, 20, 30, 20);
         layout.setGravity(Gravity.CENTER);
         
-        // Add rounded corners programmatically
+        // Small circular background
         android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
-        shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-        shape.setCornerRadius(50);
+        shape.setShape(android.graphics.drawable.GradientDrawable.OVAL);
         shape.setColor(Color.parseColor("#FF5500"));
         layout.setBackground(shape);
 
+        // Small "T" or Timer text
         TextView timerView = new TextView(this);
         timerView.setId(1001);
-        timerView.setText("00:00");
-        timerView.setTextColor(Color.WHITE);
-        timerView.setTextSize(24);
+        timerView.setText("T");
+        timerView.setTextColor(Color.BLACK);
+        timerView.setTextSize(18);
         timerView.setTypeface(null, android.graphics.Typeface.BOLD);
         layout.addView(timerView);
-
-        TextView subjectView = new TextView(this);
-        subjectView.setId(1002);
-        subjectView.setText("Studying");
-        subjectView.setTextColor(Color.WHITE);
-        subjectView.setTextSize(12);
-        layout.addView(subjectView);
 
         int layoutFlag;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -83,9 +71,11 @@ public class FloatingWidgetService extends Service {
             layoutFlag = WindowManager.LayoutParams.TYPE_PHONE;
         }
 
+        // Set size to 60dp x 60dp
+        int size = (int) (60 * getResources().getDisplayMetrics().density);
         final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
+                size,
+                size,
                 layoutFlag,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
@@ -97,21 +87,32 @@ public class FloatingWidgetService extends Service {
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         mWindowManager.addView(mFloatingWidget, params);
 
-        // Drag and move logic
+        // Drag and click logic
         mFloatingWidget.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
             private int initialY;
             private float initialTouchX;
             private float initialTouchY;
+            private long lastTouchDownTime;
+            private static final int CLICK_THRESHOLD = 200; // ms
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
+                        lastTouchDownTime = System.currentTimeMillis();
                         initialX = params.x;
                         initialY = params.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        // If it was a quick tap, open the app
+                        if (System.currentTimeMillis() - lastTouchDownTime < CLICK_THRESHOLD) {
+                            Intent intent = new Intent(FloatingWidgetService.this, MainActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                        }
                         return true;
                     case MotionEvent.ACTION_MOVE:
                         params.x = initialX + (int) (event.getRawX() - initialTouchX);
