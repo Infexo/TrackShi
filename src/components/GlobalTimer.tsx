@@ -2,6 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
+import FloatingWidget from '../lib/floatingWidget';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 
 export default function GlobalTimer() {
   const { user } = useAuth();
@@ -10,8 +13,21 @@ export default function GlobalTimer() {
   const [isStudying, setIsStudying] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  const [subjectName, setSubjectName] = useState<string>('Studying');
+  const [isAppActive, setIsAppActive] = useState(true);
   
   const lastChimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    
+    const appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      setIsAppActive(isActive);
+    });
+    return () => {
+      appStateListener.then(listener => listener.remove());
+    };
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -19,13 +35,16 @@ export default function GlobalTimer() {
     const fetchStatus = async () => {
       const { data } = await supabase
         .from('live_status')
-        .select('*')
+        .select('*, subjects(name)')
         .eq('user_id', user.id)
         .single();
       
       if (data && data.status === 'studying' && data.started_at) {
         setIsStudying(true);
         setSessionStartTime(new Date(data.started_at));
+        if (data.subjects && data.subjects.name) {
+          setSubjectName(data.subjects.name);
+        }
       } else {
         setIsStudying(false);
         setSessionStartTime(null);
@@ -41,11 +60,16 @@ export default function GlobalTimer() {
         schema: 'public', 
         table: 'live_status',
         filter: `user_id=eq.${user.id}`
-      }, (payload: any) => {
+      }, async (payload: any) => {
         const status = payload.new;
         if (status && status.status === 'studying' && status.started_at) {
           setIsStudying(true);
           setSessionStartTime(new Date(status.started_at));
+          
+          if (status.subject_id) {
+            const { data } = await supabase.from('subjects').select('name').eq('id', status.subject_id).single();
+            if (data) setSubjectName(data.name);
+          }
         } else {
           setIsStudying(false);
           setSessionStartTime(null);
@@ -58,10 +82,16 @@ export default function GlobalTimer() {
     };
   }, [user]);
 
+  const formatTime = (totalSeconds: number) => {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     let interval: number;
     if (isStudying && sessionStartTime) {
-      // Initialize lastChimeRef to current minutes so it doesn't chime immediately on load
       const initialSeconds = Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000);
       lastChimeRef.current = Math.floor(initialSeconds / 60);
 
@@ -69,26 +99,54 @@ export default function GlobalTimer() {
         const seconds = Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000);
         setElapsedSeconds(seconds);
         
-        // Update Tab Title
         document.title = `🔴 LIVE - TrackShi`;
 
-        // Play chime every 30 minutes (1800 seconds)
         const minutes = Math.floor(seconds / 60);
         if (minutes > 0 && minutes % 30 === 0 && lastChimeRef.current !== minutes) {
           lastChimeRef.current = minutes;
           playChime();
+        }
+
+        // Update floating widget if app is in background
+        if (!isAppActive && Capacitor.isNativePlatform()) {
+          try {
+            FloatingWidget.startWidget({
+              timerText: formatTime(seconds),
+              subjectName: subjectName
+            });
+          } catch (e) {
+            console.error('Floating widget error', e);
+          }
         }
       }, 1000);
     } else {
       setElapsedSeconds(0);
       document.title = 'TrackShi';
       lastChimeRef.current = 0;
+      if (Capacitor.isNativePlatform()) {
+        try {
+          FloatingWidget.stopWidget();
+        } catch (e) {
+          // Ignore
+        }
+      }
     }
     return () => {
       clearInterval(interval);
       document.title = 'TrackShi';
     };
-  }, [isStudying, sessionStartTime]);
+  }, [isStudying, sessionStartTime, isAppActive, subjectName]);
+
+  useEffect(() => {
+    // When app becomes active again, hide the floating widget
+    if (isAppActive && Capacitor.isNativePlatform()) {
+      try {
+        FloatingWidget.stopWidget();
+      } catch (e) {
+        // Ignore
+      }
+    }
+  }, [isAppActive]);
 
   const playChime = () => {
     try {
@@ -112,13 +170,6 @@ export default function GlobalTimer() {
     } catch (e) {
       console.error("Audio play failed", e);
     }
-  };
-
-  const formatTime = (totalSeconds: number) => {
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
   if (!isStudying) return null;

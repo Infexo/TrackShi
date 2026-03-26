@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TrackShi</string>
+    <string name="title_activity_main">TrackShi</string>
+    <string name="package_name">com.trackshi.app</string>
+    <string name="custom_url_scheme">com.trackshi.app</string>
+</resources>
