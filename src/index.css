@@ -11,6 +11,12 @@ body {
   background-color: #050505;
   color: #F4F4F5;
   font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Custom scrollbar for brutalist feel */

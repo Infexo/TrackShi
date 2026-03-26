@@ -309,14 +309,14 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between border-b border-zinc-800 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-6">
         <div>
           <h1 className="text-4xl font-black tracking-tighter mb-1 uppercase">Dashboard</h1>
           <p className="text-zinc-500 font-serif italic text-sm">Track your study sessions. Resets at 4:00 AM.</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           {!activeSubjectId && breakSeconds > 0 && (
-            <div className="flex flex-col items-end">
+            <div className="flex flex-col items-start sm:items-end">
               <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Time since last session</span>
               <span className="text-lg font-mono font-bold text-zinc-300">{formatTime(breakSeconds)}</span>
             </div>
@@ -328,10 +328,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          {/* Progress Bar */}
-          <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none relative overflow-hidden">
+      <div className="max-w-3xl space-y-8">
+        {/* Progress Bar */}
+        <div className="bg-[#0A0A0A] p-6 border border-zinc-800 rounded-none relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-zinc-900">
               <div
                 className="bg-[#FF5500] h-1 transition-all duration-500 ease-out"
@@ -380,20 +379,20 @@ export default function Dashboard() {
                 return (
                   <div 
                     key={subject.id} 
-                    className={`flex items-center justify-between p-5 bg-[#0A0A0A] border rounded-none transition-all ${isRunning ? 'border-[#FF5500] shadow-[0_0_15px_rgba(255,85,0,0.15)]' : 'border-zinc-800 hover:border-zinc-600'}`}
+                    className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-[#0A0A0A] border rounded-none transition-all ${isRunning ? 'border-[#FF5500] shadow-[0_0_15px_rgba(255,85,0,0.15)]' : 'border-zinc-800 hover:border-zinc-600'}`}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: subject.color || '#FF5500', opacity: isRunning ? 1 : 0.5 }}></div>
-                      <div>
-                        <h3 className="font-bold text-xl tracking-tight uppercase">{subject.name}</h3>
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: subject.color || '#FF5500', opacity: isRunning ? 1 : 0.5 }}></div>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-lg sm:text-xl tracking-tight uppercase truncate">{subject.name}</h3>
                         {isRunning && <p className="text-xs text-[#FF5500] font-mono uppercase tracking-widest mt-1 animate-pulse">Recording</p>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-8">
-                      <span className={`text-3xl font-mono tracking-tighter ${isRunning ? 'text-zinc-100' : 'text-zinc-500'}`}>{formatTime(displaySeconds)}</span>
+                    <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-8 w-full sm:w-auto">
+                      <span className={`text-2xl sm:text-3xl font-mono tracking-tighter ${isRunning ? 'text-zinc-100' : 'text-zinc-500'}`}>{formatTime(displaySeconds)}</span>
                       <button 
                         onClick={() => handleToggleTimer(subject.id)} 
-                        className={`p-4 rounded-none border transition-all ${isRunning ? 'bg-[#FF5500] border-[#FF5500] text-black' : 'bg-transparent border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-100'}`}
+                        className={`p-4 rounded-none border transition-all shrink-0 ${isRunning ? 'bg-[#FF5500] border-[#FF5500] text-black' : 'bg-transparent border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-100'}`}
                       >
                         {isRunning ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1" />}
                       </button>
@@ -404,7 +403,6 @@ export default function Dashboard() {
             })()}
           </div>
         </div>
-      </div>
     </div>
   );
 }

@@ -123,9 +123,6 @@ export default function GlobalTimer() {
 
   if (!isStudying) return null;
 
-  // Don't show the floating button if we are already on the dashboard
-  if (location.pathname === '/') return null;
-
   return (
     <button
       onClick={() => navigate('/')}

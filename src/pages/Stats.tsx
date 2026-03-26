@@ -180,7 +180,7 @@ export default function Stats() {
                   dataKey="hours" 
                   fill="#FF5500" 
                   radius={[0, 0, 0, 0]} 
-                  barSize={40}
+                  maxBarSize={40}
                 />
               </BarChart>
             </ResponsiveContainer>

@@ -75,14 +75,15 @@ export default function Calendar() {
     let day = startDate;
     let formattedDate = "";
 
-    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
     // Weekday headers
     const headerRow = (
       <div className="grid grid-cols-7 mb-2" key="header">
         {weekDays.map((wd, i) => (
           <div key={i} className="text-center text-xs font-mono text-zinc-500 uppercase tracking-widest py-2">
-            {wd}
+            <span className="sm:hidden">{wd}</span>
+            <span className="hidden sm:inline">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</span>
           </div>
         ))}
       </div>
@@ -103,19 +104,19 @@ export default function Calendar() {
             key={day.toString()}
             onClick={() => handleDayClick(cloneDay)}
             className={`
-              min-h-[100px] p-3 border cursor-pointer transition-all rounded-none
+              min-h-[60px] sm:min-h-[100px] p-1 sm:p-3 border cursor-pointer transition-all rounded-none
               ${!isCurrentMonth ? 'opacity-30' : ''}
               ${isSelected ? 'ring-2 ring-[#FF5500] ring-inset z-10' : 'hover:border-zinc-500'}
               ${getHeatmapColor(totalSeconds)}
             `}
           >
             <div className="flex flex-col h-full justify-between items-start">
-              <span className={`text-sm font-mono ${!isCurrentMonth ? 'opacity-50' : ''}`}>
+              <span className={`text-xs sm:text-sm font-mono ${!isCurrentMonth ? 'opacity-50' : ''}`}>
                 {formattedDate}
               </span>
               {totalSeconds > 0 && (
-                <span className="text-xs font-mono uppercase tracking-widest mt-auto">
-                  {Math.floor(totalSeconds / 3600)}h {Math.floor((totalSeconds % 3600) / 60)}m
+                <span className="text-[9px] sm:text-xs font-mono uppercase tracking-widest mt-auto">
+                  {Math.floor(totalSeconds / 3600)}h <span className="hidden sm:inline">{Math.floor((totalSeconds % 3600) / 60)}m</span>
                 </span>
               )}
             </div>

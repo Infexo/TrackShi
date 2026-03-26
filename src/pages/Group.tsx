@@ -396,33 +396,33 @@ export default function Group() {
                 members.map((m) => (
                   <div key={m.id} className="border-b border-zinc-800 last:border-0">
                     <div 
-                      className="p-5 flex items-center justify-between hover:bg-[#141414] transition-colors cursor-pointer"
+                      className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#141414] transition-colors cursor-pointer"
                       onClick={() => setExpandedMemberId(expandedMemberId === m.id ? null : m.id)}
                     >
-                      <div className="flex items-center gap-5">
-                        <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center font-bold text-zinc-500 font-mono text-xl">
+                      <div className="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-zinc-900 border border-zinc-800 rounded-none flex items-center justify-center font-bold text-zinc-500 font-mono text-lg sm:text-xl">
                           {m.name.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <div className="flex items-center gap-3">
-                            <p className="font-bold text-lg tracking-tight uppercase">{m.name}</p>
-                            <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 bg-zinc-900 text-[#FF5500] border border-zinc-800">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                            <p className="font-bold text-base sm:text-lg tracking-tight uppercase truncate max-w-[150px] sm:max-w-none">{m.name}</p>
+                            <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 bg-zinc-900 text-[#FF5500] border border-zinc-800 whitespace-nowrap">
                               {getStudyTag(m.today_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))}
                             </span>
                           </div>
-                          <div className="flex items-center gap-3 mt-1">
+                          <div className="flex items-center gap-2 sm:gap-3 mt-1">
                             {m.status === 'studying' ? (
                               <>
-                                <span className="w-2 h-2 rounded-full bg-[#FF5500] animate-pulse"></span>
-                                <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">
+                                <span className="w-2 h-2 rounded-full bg-[#FF5500] animate-pulse shrink-0"></span>
+                                <span className="text-[10px] sm:text-xs font-mono text-zinc-400 uppercase tracking-widest truncate">
                                   studying <span className="text-[#FF5500]">{m.subject_name}</span>
                                   {m.started_at && ` (${getLiveDuration(m.started_at)})`}
                                 </span>
                               </>
                             ) : (
                               <>
-                                <span className="w-2 h-2 rounded-full bg-zinc-800"></span>
-                                <span className="text-xs font-mono text-zinc-600 uppercase tracking-widest">offline</span>
+                                <span className="w-2 h-2 rounded-full bg-zinc-800 shrink-0"></span>
+                                <span className="text-[10px] sm:text-xs font-mono text-zinc-600 uppercase tracking-widest">offline</span>
                               </>
                             )}
                           </div>
@@ -432,8 +432,8 @@ export default function Group() {
                             <div className="flex flex-wrap gap-2 mt-3">
                               {m.today_subjects.map((sub, idx) => (
                                 <div key={idx} className="flex items-center gap-1.5 bg-[#141414] border border-zinc-800 px-2 py-1 rounded-sm">
-                                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: sub.color }}></div>
-                                  <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">{sub.name}</span>
+                                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: sub.color }}></div>
+                                  <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest truncate max-w-[80px] sm:max-w-none">{sub.name}</span>
                                   <span className="text-[10px] font-mono text-[#FF5500]">{formatDuration(sub.seconds)}</span>
                                 </div>
                               ))}
@@ -441,16 +441,16 @@ export default function Group() {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-6">
-                        <div className="text-right">
-                          <p className="text-lg font-mono text-zinc-100">
-                            {formatDuration(m.today_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))} <span className="text-xs text-zinc-500 uppercase tracking-widest ml-1">today</span>
+                      <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 w-full sm:w-auto mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-800">
+                        <div className="text-left sm:text-right">
+                          <p className="text-base sm:text-lg font-mono text-zinc-100">
+                            {formatDuration(m.today_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))} <span className="text-[10px] sm:text-xs text-zinc-500 uppercase tracking-widest ml-1">today</span>
                           </p>
-                          <p className="text-sm font-mono text-zinc-500">
+                          <p className="text-xs sm:text-sm font-mono text-zinc-500">
                             {formatDuration(m.week_seconds + (m.status === 'studying' && m.started_at ? getLiveDurationSeconds(m.started_at) : 0))} <span className="text-[10px] uppercase tracking-widest ml-1">this week</span>
                           </p>
                         </div>
-                        <div className="text-zinc-500">
+                        <div className="text-zinc-500 shrink-0">
                           {expandedMemberId === m.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                         </div>
                       </div>

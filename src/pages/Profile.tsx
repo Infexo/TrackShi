@@ -145,7 +145,7 @@ export default function Profile() {
               </div>
               <div className="flex gap-4 items-center">
                 <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Color:</span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {COLORS.map(c => (
                     <button
                       key={c}
@@ -161,11 +161,11 @@ export default function Profile() {
             <ul className="divide-y divide-zinc-800 border border-zinc-800 rounded-none bg-[#141414]">
               {subjects.map((s) => (
                 <li key={s.id} className="p-4 flex items-center justify-between hover:bg-zinc-900 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-4 h-4 rounded-none" style={{ backgroundColor: s.color || '#FF5500' }} />
-                    <span className="font-bold uppercase tracking-tight text-zinc-100">{s.name}</span>
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-4 h-4 rounded-none shrink-0" style={{ backgroundColor: s.color || '#FF5500' }} />
+                    <span className="font-bold uppercase tracking-tight text-zinc-100 truncate">{s.name}</span>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 shrink-0 ml-4">
                     <button
                       onClick={() => handleRenameSubject(s.id, s.name)}
                       className="text-zinc-500 hover:text-zinc-100 transition-colors"
