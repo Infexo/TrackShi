@@ -15,8 +15,30 @@ export default function GlobalTimer() {
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [subjectName, setSubjectName] = useState<string>('Studying');
   const [isAppActive, setIsAppActive] = useState(true);
+  const [hasFloatingPermission, setHasFloatingPermission] = useState(true);
   
   const lastChimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    const checkPermission = async () => {
+      if (Capacitor.isNativePlatform()) {
+        const { granted } = await FloatingWidget.checkPermission();
+        setHasFloatingPermission(granted);
+      }
+    };
+    checkPermission();
+  }, []);
+
+  const handleRequestPermission = async () => {
+    if (Capacitor.isNativePlatform()) {
+      await FloatingWidget.requestPermission();
+      // After returning from settings, check again
+      setTimeout(async () => {
+        const { granted } = await FloatingWidget.checkPermission();
+        setHasFloatingPermission(granted);
+      }, 1000);
+    }
+  };
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -176,6 +198,19 @@ export default function GlobalTimer() {
 
   return (
     <>
+      {!hasFloatingPermission && Capacitor.isNativePlatform() && (
+        <div className="fixed bottom-24 left-6 right-6 z-50 bg-black/90 border border-[#FF5500] p-4 flex flex-col gap-3">
+          <p className="font-mono text-xs text-white uppercase tracking-wider">
+            Floating widget requires "Display over other apps" permission.
+          </p>
+          <button
+            onClick={handleRequestPermission}
+            className="bg-[#FF5500] text-black font-mono font-bold py-2 text-xs uppercase tracking-widest"
+          >
+            Grant Permission
+          </button>
+        </div>
+      )}
       <button
         onClick={() => navigate('/')}
         className="fixed bottom-6 right-6 z-50 bg-[#FF5500] text-black px-4 py-3 rounded-none shadow-[0_0_20px_rgba(255,85,0,0.4)] flex items-center gap-3 hover:bg-orange-600 transition-all border border-[#FF5500] group"
