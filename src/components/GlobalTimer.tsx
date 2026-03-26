@@ -172,20 +172,46 @@ export default function GlobalTimer() {
     }
   };
 
+  const handleTestWidget = async () => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await FloatingWidget.startWidget({
+          timerText: formatTime(elapsedSeconds),
+          subjectName: subjectName
+        });
+        console.log("Widget started manually");
+      } catch (e) {
+        console.error('Floating widget error', e);
+      }
+    } else {
+      alert("Widget only works on Android");
+    }
+  };
+
   if (!isStudying) return null;
 
   return (
-    <button
-      onClick={() => navigate('/')}
-      className="fixed bottom-6 right-6 z-50 bg-[#FF5500] text-black px-4 py-3 rounded-none shadow-[0_0_20px_rgba(255,85,0,0.4)] flex items-center gap-3 hover:bg-orange-600 transition-all border border-[#FF5500] group"
-    >
-      <div className="w-2 h-2 rounded-full bg-black animate-pulse"></div>
-      <span className="font-mono font-bold uppercase tracking-widest text-sm">
-        {formatTime(elapsedSeconds)}
-      </span>
-      <span className="font-mono font-bold uppercase tracking-widest text-xs opacity-70 group-hover:opacity-100">
-        BACK
-      </span>
-    </button>
+    <>
+      <button
+        onClick={handleTestWidget}
+        className="fixed bottom-24 right-6 z-50 bg-blue-500 text-white px-4 py-3 rounded-none shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center gap-3 hover:bg-blue-600 transition-all border border-blue-500 group"
+      >
+        <span className="font-mono font-bold uppercase tracking-widest text-xs">
+          TEST WIDGET
+        </span>
+      </button>
+      <button
+        onClick={() => navigate('/')}
+        className="fixed bottom-6 right-6 z-50 bg-[#FF5500] text-black px-4 py-3 rounded-none shadow-[0_0_20px_rgba(255,85,0,0.4)] flex items-center gap-3 hover:bg-orange-600 transition-all border border-[#FF5500] group"
+      >
+        <div className="w-2 h-2 rounded-full bg-black animate-pulse"></div>
+        <span className="font-mono font-bold uppercase tracking-widest text-sm">
+          {formatTime(elapsedSeconds)}
+        </span>
+        <span className="font-mono font-bold uppercase tracking-widest text-xs opacity-70 group-hover:opacity-100">
+          BACK
+        </span>
+      </button>
+    </>
   );
 }
