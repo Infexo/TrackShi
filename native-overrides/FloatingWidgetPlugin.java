@@ -30,32 +30,30 @@ public class FloatingWidgetPlugin extends Plugin {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(getContext())) {
                 try {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:" + getContext().getPackageName()));
+                    Intent intent = new Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:" + getContext().getPackageName())
+                    );
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     getContext().startActivity(intent);
-                    call.resolve();
                 } catch (Exception e) {
-                    // Fallback for some devices that might not support the package URI
                     Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     getContext().startActivity(intent);
-                    call.resolve();
                 }
-            } else {
-                call.resolve();
             }
-        } else {
-            call.resolve();
         }
+        call.resolve();
     }
 
     @PluginMethod
     public void startWidget(PluginCall call) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(getContext())) {
             try {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:" + getContext().getPackageName()));
+                Intent intent = new Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getContext().getPackageName())
+                );
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getContext().startActivity(intent);
             } catch (Exception e) {
@@ -63,7 +61,7 @@ public class FloatingWidgetPlugin extends Plugin {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getContext().startActivity(intent);
             }
-            call.reject("Permission required");
+            call.reject("Overlay permission required");
             return;
         }
 
@@ -73,7 +71,12 @@ public class FloatingWidgetPlugin extends Plugin {
         Intent intent = new Intent(getContext(), FloatingWidgetService.class);
         intent.putExtra("timerText", timerText);
         intent.putExtra("subjectName", subjectName);
-        getContext().startService(intent);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getContext().startForegroundService(intent);
+        } else {
+            getContext().startService(intent);
+        }
 
         call.resolve();
     }
