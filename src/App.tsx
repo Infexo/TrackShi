@@ -47,8 +47,28 @@ export default function App() {
         </Router>
       </AuthProvider>
 
-      {/* ✅ Injected globally */}
+      {/* ✅ Debug Console */}
       <DebugConsole />
+
+      {/* ✅ Floating Test Button */}
+      <button
+        onClick={startFloatingWidget}
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          background: '#ff6b00',
+          color: 'white',
+          padding: '12px 24px',
+          border: 'none',
+          borderRadius: '8px',
+          fontSize: '16px',
+          zIndex: 9999,
+          cursor: 'pointer'
+        }}
+      >
+        🧪 TEST WIDGET
+      </button>
     </>
   );
 }
