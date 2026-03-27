@@ -7,10 +7,10 @@ import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.IBinder;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -55,12 +55,20 @@ public class FloatingWidgetService extends Service {
         shape.setColor(Color.parseColor("#FF5500"));
         layout.setBackground(shape);
 
-        // Small "T" or Timer text
+        // App icon
+        ImageView iconView = new ImageView(this);
+        iconView.setImageResource(R.mipmap.ic_launcher_round);
+        int iconSize = (int) (28 * getResources().getDisplayMetrics().density);
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(iconSize, iconSize);
+        iconParams.bottomMargin = (int) (2 * getResources().getDisplayMetrics().density);
+        layout.addView(iconView, iconParams);
+
+        // Timer text
         TextView timerView = new TextView(this);
         timerView.setId(1001);
-        timerView.setText("T");
+        timerView.setText("00:00");
         timerView.setTextColor(Color.BLACK);
-        timerView.setTextSize(18);
+        timerView.setTextSize(10);
         timerView.setTypeface(null, android.graphics.Typeface.BOLD);
         layout.addView(timerView);
 
