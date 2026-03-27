@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "sync:android": "npx cap sync android && node scripts/restore-native.cjs"
+    "sync:android": "npx cap copy android",
+    "sync:full": "npx cap sync android && node scripts/restore-native.cjs",
+    "build:android": "npm run build && npx cap copy android"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.0",
