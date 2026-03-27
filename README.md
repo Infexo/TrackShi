@@ -2,7 +2,8 @@
 
 <div align="center">
 
-<!-- TODO: Add project logo -->
+<div align="center">
+  <img src="logo.png" alt="{TrackShi}" width="200"/>
 
 [![GitHub stars](https://img.shields.io/github/stars/Infexo/TrackShi?style=for-the-badge)](https://github.com/Infexo/TrackShi/stargazers)
 
