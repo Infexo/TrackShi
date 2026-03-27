@@ -19,6 +19,7 @@ export default function GlobalTimer() {
   const [permissionChecked, setPermissionChecked] = useState(false);
   
   const lastChimeRef = useRef<number>(0);
+  const hasAutoRequestedPermissionRef = useRef(false);
 
   useEffect(() => {
     const checkPermission = async () => {
@@ -28,6 +29,7 @@ export default function GlobalTimer() {
           setHasFloatingPermission(granted);
         } catch (e) {
           console.error('Permission check failed', e);
+          setHasFloatingPermission(false);
         } finally {
           setPermissionChecked(true);
         }
@@ -54,6 +56,17 @@ export default function GlobalTimer() {
     
     const appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
       setIsAppActive(isActive);
+      if (isActive) {
+        FloatingWidget.checkPermission()
+          .then(({ granted }) => {
+            setHasFloatingPermission(granted);
+            setPermissionChecked(true);
+          })
+          .catch(() => {
+            setHasFloatingPermission(false);
+            setPermissionChecked(true);
+          });
+      }
     });
     return () => {
       appStateListener.then(listener => listener.remove());
@@ -140,14 +153,21 @@ export default function GlobalTimer() {
 
         // Update floating widget if app is in background
         if (!isAppActive && Capacitor.isNativePlatform()) {
-          try {
-            FloatingWidget.startWidget({
+          FloatingWidget.startWidget({
               timerText: formatTime(seconds),
               subjectName: subjectName
+            })
+            .catch(async (e) => {
+              console.error('Floating widget error', e);
+              try {
+                const { granted } = await FloatingWidget.checkPermission();
+                setHasFloatingPermission(granted);
+              } catch {
+                setHasFloatingPermission(false);
+              } finally {
+                setPermissionChecked(true);
+              }
             });
-          } catch (e) {
-            console.error('Floating widget error', e);
-          }
         }
       }, 1000);
     } else {
@@ -178,6 +198,35 @@ export default function GlobalTimer() {
       }
     }
   }, [isAppActive]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    if (!isStudying || !isAppActive || !permissionChecked || hasFloatingPermission) {
+      hasAutoRequestedPermissionRef.current = false;
+      return;
+    }
+
+    if (hasAutoRequestedPermissionRef.current) return;
+    hasAutoRequestedPermissionRef.current = true;
+
+    FloatingWidget.requestPermission()
+      .then(() => {
+        setTimeout(async () => {
+          try {
+            const { granted } = await FloatingWidget.checkPermission();
+            setHasFloatingPermission(granted);
+          } catch {
+            setHasFloatingPermission(false);
+          } finally {
+            setPermissionChecked(true);
+          }
+        }, 800);
+      })
+      .catch(() => {
+        setHasFloatingPermission(false);
+        setPermissionChecked(true);
+      });
+  }, [isStudying, isAppActive, permissionChecked, hasFloatingPermission]);
 
   const playChime = () => {
     try {
