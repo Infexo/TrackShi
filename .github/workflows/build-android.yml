@@ -13,10 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # ⬇️ FIX: Node 22 required by Capacitor CLI
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
         run: npm ci
@@ -24,11 +25,11 @@ jobs:
       - name: Build Web App
         run: npm run build
 
-      # ⬇️ Use cap copy instead of cap sync to avoid overwriting native files
+      # ⬇️ FIX: cap copy only moves web assets, never touches native code
       - name: Copy web assets to Android
         run: npx cap copy android
 
-      # ⬇️ Verify critical native files survived
+      # ⬇️ Verify nothing is missing before wasting time on Gradle
       - name: Verify native files
         run: |
           echo "=== Checking MainActivity.java ==="
@@ -66,6 +67,7 @@ jobs:
           echo ""
           echo "=== All critical checks passed ==="
 
+      # ⬇️ FIX: Java setup BEFORE Gradle build
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
