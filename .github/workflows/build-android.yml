@@ -1,0 +1,79 @@
+name: Build Android APK
+#nothing1
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ⬇️ FIX: Node 22 required by Capacitor CLI
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Web App
+        run: npm run build
+
+      # ⬇️ FIX: cap copy only moves web assets, never touches native code
+      - name: Copy web assets to Android
+        run: npx cap copy android
+
+      # ⬇️ Verify nothing is missing before wasting time on Gradle
+      - name: Verify native files
+        run: |
+          echo "=== Checking MainActivity.java ==="
+          grep -q "registerPlugin(FloatingWidgetPlugin.class)" \
+            android/app/src/main/java/com/trackshi/app/MainActivity.java \
+            && echo "✅ registerPlugin found" \
+            || (echo "❌ registerPlugin MISSING" && exit 1)
+          echo "=== Checking FloatingWidgetService.java ==="
+          test -f android/app/src/main/java/com/trackshi/app/FloatingWidgetService.java \
+            && echo "✅ FloatingWidgetService exists" \
+            || (echo "❌ FloatingWidgetService MISSING" && exit 1)
+          echo "=== Checking FloatingWidgetPlugin.java ==="
+          test -f android/app/src/main/java/com/trackshi/app/FloatingWidgetPlugin.java \
+            && echo "✅ FloatingWidgetPlugin exists" \
+            || (echo "❌ FloatingWidgetPlugin MISSING" && exit 1)
+          echo "=== Checking AndroidManifest.xml ==="
+          grep -q "FOREGROUND_SERVICE" \
+            android/app/src/main/AndroidManifest.xml \
+            && echo "✅ FOREGROUND_SERVICE permission found" \
+            || (echo "❌ FOREGROUND_SERVICE permission MISSING" && exit 1)
+          grep -q "FloatingWidgetService" \
+            android/app/src/main/AndroidManifest.xml \
+            && echo "✅ Service declared in manifest" \
+            || (echo "❌ Service NOT declared in manifest" && exit 1)
+          echo "=== Checking app icons ==="
+          test -f android/app/src/main/res/mipmap-hdpi/ic_launcher.png \
+            && echo "✅ App icon exists" \
+            || echo "⚠️  App icon PNG missing (may use adaptive)"
+          echo ""
+          echo "=== All critical checks passed ==="
+      # ⬇️ FIX: Java setup BEFORE Gradle build
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
