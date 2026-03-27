@@ -5,14 +5,6 @@
 <div align="center">
   <img src="logo.png" alt="{TrackShi}" width="200"/>
 
-[![GitHub stars](https://img.shields.io/github/stars/Infexo/TrackShi?style=for-the-badge)](https://github.com/Infexo/TrackShi/stargazers)
-
-[![GitHub forks](https://img.shields.io/github/forks/Infexo/TrackShi?style=for-the-badge)](https://github.com/Infexo/TrackShi/network)
-
-[![GitHub issues](https://img.shields.io/github/issues/Infexo/TrackShi?style=for-the-badge)](https://github.com/Infexo/TrackShi/issues)
-
-[![GitHub license](https://img.shields.io/github/license/Infexo/TrackShi?style=for-the-badge)](LICENSE) <!-- TODO: Add LICENSE file if not present -->
-
 **A powerful study tracker that seamlessly integrates YPT data and fosters collaborative learning through groups.**
 
 [Live Demo](https://trackshi.vercel.app)
