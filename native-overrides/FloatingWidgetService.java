@@ -40,41 +40,30 @@ public class FloatingWidgetService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        // ⬇️ CRITICAL: Must call startForeground() immediately
         createNotificationChannel();
-        startForeground(NOTIFICATION_ID, buildNotification("00:00", "Studying"));
+        startForeground(NOTIFICATION_ID, buildNotification("00:00"));
+
         createFloatingWidget();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String timerText = "00:00";
-        String subjectName = "Studying";
-
         if (intent != null) {
-            String incomingTimer = intent.getStringExtra("timerText");
-            String incomingSubject = intent.getStringExtra("subjectName");
+            String timerText = intent.getStringExtra("timerText");
+            if (mFloatingWidget != null && timerText != null) {
+                TextView timerView = mFloatingWidget.findViewById(TIMER_VIEW_ID);
+                if (timerView != null) {
+                    timerView.setText(timerText);
+                }
 
-            if (incomingTimer != null) {
-                timerText = incomingTimer;
-            }
-
-            if (incomingSubject != null) {
-                subjectName = incomingSubject;
-            }
-        }
-
-        if (mFloatingWidget != null) {
-            TextView timerView = mFloatingWidget.findViewById(TIMER_VIEW_ID);
-            if (timerView != null) {
-                timerView.setText(timerText);
+                // Also update the notification
+                NotificationManager nm = getSystemService(NotificationManager.class);
+                if (nm != null) {
+                    nm.notify(NOTIFICATION_ID, buildNotification(timerText));
+                }
             }
         }
-
-        NotificationManager nm = getSystemService(NotificationManager.class);
-        if (nm != null) {
-            nm.notify(NOTIFICATION_ID, buildNotification(timerText, subjectName));
-        }
-
         return START_STICKY;
     }
 
@@ -84,17 +73,20 @@ public class FloatingWidgetService extends Service {
         if (mFloatingWidget != null && mWindowManager != null) {
             try {
                 mWindowManager.removeView(mFloatingWidget);
-            } catch (Exception ignored) {
+            } catch (IllegalArgumentException e) {
+                // View already removed
             }
         }
     }
+
+    // ─── Notification (required for foreground service) ───
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     "Study Timer",
-                    NotificationManager.IMPORTANCE_LOW
+                    NotificationManager.IMPORTANCE_LOW  // no sound
             );
             channel.setShowBadge(false);
             channel.setDescription("Shows while study timer is running");
@@ -106,19 +98,18 @@ public class FloatingWidgetService extends Service {
         }
     }
 
-    private Notification buildNotification(String timerText, String subjectName) {
+    private Notification buildNotification(String timerText) {
         Intent tapIntent = new Intent(this, MainActivity.class);
-        tapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        tapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
-                this,
-                0,
-                tapIntent,
+                this, 0, tapIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("TrackShi - " + subjectName)
+                .setContentTitle("TrackShi — Studying")
                 .setContentText("Timer: " + timerText)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(pendingIntent)
@@ -127,30 +118,35 @@ public class FloatingWidgetService extends Service {
                 .build();
     }
 
+    // ─── Floating Widget UI ───
+
     private void createFloatingWidget() {
         float density = getResources().getDisplayMetrics().density;
 
+        // Root layout
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setGravity(Gravity.CENTER);
-
         int padding = (int) (4 * density);
         layout.setPadding(padding, padding, padding, padding);
 
+        // Circular orange background
         GradientDrawable shape = new GradientDrawable();
         shape.setShape(GradientDrawable.OVAL);
         shape.setColor(Color.parseColor("#FF5500"));
         layout.setBackground(shape);
 
+        // App icon
         ImageView iconView = new ImageView(this);
         iconView.setImageResource(R.mipmap.ic_launcher_round);
         iconView.setContentDescription("TrackShi");
-
         int iconSize = (int) (28 * density);
-        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(iconSize, iconSize);
+        LinearLayout.LayoutParams iconParams =
+                new LinearLayout.LayoutParams(iconSize, iconSize);
         iconParams.bottomMargin = (int) (2 * density);
         layout.addView(iconView, iconParams);
 
+        // Timer text
         TextView timerView = new TextView(this);
         timerView.setId(TIMER_VIEW_ID);
         timerView.setText("00:00");
@@ -161,6 +157,7 @@ public class FloatingWidgetService extends Service {
 
         mFloatingWidget = layout;
 
+        // Window parameters
         int layoutFlag;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             layoutFlag = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
@@ -170,33 +167,24 @@ public class FloatingWidgetService extends Service {
 
         int size = (int) (60 * density);
         final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                size,
-                size,
+                size, size,
                 layoutFlag,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT
-        );
+                PixelFormat.TRANSLUCENT);
 
         params.gravity = Gravity.TOP | Gravity.START;
         params.x = 0;
         params.y = 100;
 
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        mWindowManager.addView(mFloatingWidget, params);
 
-        try {
-            mWindowManager.addView(mFloatingWidget, params);
-        } catch (Exception e) {
-            stopSelf();
-            return;
-        }
-
+        // Touch: drag + tap to open app
         final int clickDistPx = (int) (8 * density);
 
         mFloatingWidget.setOnTouchListener(new View.OnTouchListener() {
-            private int initialX;
-            private int initialY;
-            private float initialTouchX;
-            private float initialTouchY;
+            private int initialX, initialY;
+            private float initialTouchX, initialTouchY;
             private long touchDownTime;
 
             @Override
@@ -213,9 +201,7 @@ public class FloatingWidgetService extends Service {
                     case MotionEvent.ACTION_MOVE:
                         params.x = initialX + (int) (event.getRawX() - initialTouchX);
                         params.y = initialY + (int) (event.getRawY() - initialTouchY);
-                        if (mWindowManager != null && mFloatingWidget != null) {
-                            mWindowManager.updateViewLayout(mFloatingWidget, params);
-                        }
+                        mWindowManager.updateViewLayout(mFloatingWidget, params);
                         return true;
 
                     case MotionEvent.ACTION_UP:
@@ -225,8 +211,11 @@ public class FloatingWidgetService extends Service {
                         float dist = (float) Math.sqrt(dx * dx + dy * dy);
 
                         if (elapsed < 200 && dist < clickDistPx) {
-                            Intent intent = new Intent(FloatingWidgetService.this, MainActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                            Intent intent = new Intent(
+                                    FloatingWidgetService.this,
+                                    MainActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                                    | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                             startActivity(intent);
                         }
                         return true;

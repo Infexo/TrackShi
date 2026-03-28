@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import FloatingWidget from '../lib/floatingWidget';
-import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 
 export default function GlobalTimer() {
@@ -14,7 +13,6 @@ export default function GlobalTimer() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [subjectName, setSubjectName] = useState<string>('Studying');
-  const [isAppActive, setIsAppActive] = useState(true);
   const [hasFloatingPermission, setHasFloatingPermission] = useState(false);
   const [permissionChecked, setPermissionChecked] = useState(false);
   
@@ -48,17 +46,6 @@ export default function GlobalTimer() {
       }, 1000);
     }
   };
-
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    
-    const appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-      setIsAppActive(isActive);
-    });
-    return () => {
-      appStateListener.then(listener => listener.remove());
-    };
-  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -126,6 +113,13 @@ export default function GlobalTimer() {
       const initialSeconds = Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000);
       lastChimeRef.current = Math.floor(initialSeconds / 60);
 
+      if (Capacitor.isNativePlatform() && hasFloatingPermission) {
+        FloatingWidget.startWidget({
+          timerText: formatTime(initialSeconds),
+          subjectName: subjectName
+        }).catch(e => console.error('Initial widget start error', e));
+      }
+
       interval = window.setInterval(() => {
         const seconds = Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000);
         setElapsedSeconds(seconds);
@@ -138,8 +132,8 @@ export default function GlobalTimer() {
           playChime();
         }
 
-        // Update floating widget if app is in background
-        if (!isAppActive && Capacitor.isNativePlatform()) {
+        // Update floating widget
+        if (Capacitor.isNativePlatform() && hasFloatingPermission) {
           try {
             FloatingWidget.startWidget({
               timerText: formatTime(seconds),
@@ -166,18 +160,7 @@ export default function GlobalTimer() {
       clearInterval(interval);
       document.title = 'TrackShi';
     };
-  }, [isStudying, sessionStartTime, isAppActive, subjectName]);
-
-  useEffect(() => {
-    // When app becomes active again, hide the floating widget
-    if (isAppActive && Capacitor.isNativePlatform()) {
-      try {
-        FloatingWidget.stopWidget();
-      } catch (e) {
-        // Ignore
-      }
-    }
-  }, [isAppActive]);
+  }, [isStudying, sessionStartTime, subjectName, hasFloatingPermission]);
 
   const playChime = () => {
     try {
