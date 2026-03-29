@@ -24,7 +24,7 @@ export default function Layout() {
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-[#0A0A0A] border-b border-zinc-800 flex items-center justify-between px-4 z-50">
         <h1 className="text-2xl font-black tracking-tighter text-zinc-100 uppercase">
-          TS
+          TrackShi
         </h1>
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -73,7 +73,7 @@ export default function Layout() {
       `}>
         <div className="hidden md:block p-6 border-b border-zinc-800">
           <h1 className="text-4xl font-black tracking-tighter text-zinc-100 uppercase">
-            TS
+            TrackShi
           </h1>
         </div>
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">

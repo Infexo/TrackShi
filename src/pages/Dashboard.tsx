@@ -150,38 +150,55 @@ export default function Dashboard() {
 
   // Tab Indicator (Red Dot)
   useEffect(() => {
-    const originalTitle = document.title;
-    let faviconLink = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-    if (!faviconLink) {
-      faviconLink = document.createElement('link');
-      faviconLink.rel = 'icon';
-      document.head.appendChild(faviconLink);
-    }
-    const originalFavicon = faviconLink.href;
-
-    if (activeSubjectId) {
-      document.title = `🔴 ${originalTitle}`;
+    const updateTabIndicator = () => {
+      // Find all existing icon links
+      const iconLinks = document.querySelectorAll("link[rel~='icon']");
       
-      // Create a red dot favicon
-      const canvas = document.createElement('canvas');
-      canvas.width = 32;
-      canvas.height = 32;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.beginPath();
-        ctx.arc(16, 16, 12, 0, 2 * Math.PI);
-        ctx.fillStyle = '#FF5500';
-        ctx.fill();
-        faviconLink.href = canvas.toDataURL('image/png');
+      if (activeSubjectId) {
+        document.title = "Recording.....";
+        
+        // Create a red dot favicon
+        const canvas = document.createElement('canvas');
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.beginPath();
+          ctx.arc(16, 16, 12, 0, 2 * Math.PI);
+          ctx.fillStyle = '#FF5500';
+          ctx.fill();
+          const dataUrl = canvas.toDataURL('image/png');
+          
+          if (iconLinks.length > 0) {
+            iconLinks.forEach(link => (link as HTMLLinkElement).href = dataUrl);
+          } else {
+            const link = document.createElement('link');
+            link.rel = 'icon';
+            link.href = dataUrl;
+            document.head.appendChild(link);
+          }
+        }
+      } else {
+        document.title = "TrackShi";
+        const transparentIcon = "data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeg6Q9YAAAAASUVORK5CYII=";
+        if (iconLinks.length > 0) {
+          iconLinks.forEach(link => (link as HTMLLinkElement).href = transparentIcon);
+        } else {
+          const link = document.createElement('link');
+          link.rel = 'icon';
+          link.href = transparentIcon;
+          document.head.appendChild(link);
+        }
       }
-    } else {
-      document.title = originalTitle;
-      faviconLink.href = originalFavicon;
-    }
+    };
+
+    updateTabIndicator();
 
     return () => {
-      document.title = originalTitle;
-      faviconLink.href = originalFavicon;
+      document.title = "TrackShi";
+      const iconLinks = document.querySelectorAll("link[rel~='icon']");
+      const transparentIcon = "data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeg6Q9YAAAAASUVORK5CYII=";
+      iconLinks.forEach(link => (link as HTMLLinkElement).href = transparentIcon);
     };
   }, [activeSubjectId]);
 

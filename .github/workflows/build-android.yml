@@ -27,7 +27,9 @@ jobs:
 
       # ⬇️ FIX: cap copy only moves web assets, never touches native code
       - name: Copy web assets to Android
-        run: npx cap copy android
+        run: |
+          npx cap copy android
+          node scripts/restore-native.cjs
 
       # ⬇️ Verify nothing is missing before wasting time on Gradle
       - name: Verify native files
@@ -42,9 +44,9 @@ jobs:
             && echo "✅ INTERNET permission found" \
             || (echo "❌ INTERNET permission MISSING" && exit 1)
           echo "=== Checking app icons ==="
-          test -f android/app/src/main/res/mipmap-hdpi/ic_launcher.png \
-            && echo "✅ App icon exists" \
-            || echo "⚠️  App icon PNG missing (may use adaptive)"
+          test -d android/app/src/main/res \
+            && echo "✅ res folder found" \
+            || (echo "❌ res folder MISSING" && exit 1)
           echo ""
           echo "=== All critical checks passed ==="
       # ⬇️ FIX: Java setup BEFORE Gradle build
