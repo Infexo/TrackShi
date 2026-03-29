@@ -148,6 +148,43 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [activeSubjectId, lastSessionEndTime]);
 
+  // Tab Indicator (Red Dot)
+  useEffect(() => {
+    const originalTitle = document.title;
+    let faviconLink = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (!faviconLink) {
+      faviconLink = document.createElement('link');
+      faviconLink.rel = 'icon';
+      document.head.appendChild(faviconLink);
+    }
+    const originalFavicon = faviconLink.href;
+
+    if (activeSubjectId) {
+      document.title = `🔴 ${originalTitle}`;
+      
+      // Create a red dot favicon
+      const canvas = document.createElement('canvas');
+      canvas.width = 32;
+      canvas.height = 32;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.beginPath();
+        ctx.arc(16, 16, 12, 0, 2 * Math.PI);
+        ctx.fillStyle = '#FF5500';
+        ctx.fill();
+        faviconLink.href = canvas.toDataURL('image/png');
+      }
+    } else {
+      document.title = originalTitle;
+      faviconLink.href = originalFavicon;
+    }
+
+    return () => {
+      document.title = originalTitle;
+      faviconLink.href = originalFavicon;
+    };
+  }, [activeSubjectId]);
+
   const fetchData = async () => {
     if (!user) return;
     
