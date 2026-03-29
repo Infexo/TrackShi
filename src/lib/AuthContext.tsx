@@ -14,40 +14,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        if (error.message.includes('lock request is aborted')) {
-          // Ignore this error, it happens in React Strict Mode or when multiple tabs are open
-          setLoading(false);
-          return;
+    let mounted = true;
+
+    // Use onAuthStateChange as the single source of truth.
+    // It fires INITIAL_SESSION immediately with the current session.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+
+      console.log('Auth event:', event, session ? 'Session found' : 'No session');
+
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        if (session?.user) {
+          setUser(session.user);
         }
-        console.error('Auth session error:', error.message);
-        if (error.message.includes('Refresh Token Not Found') || error.message.includes('Invalid Refresh Token')) {
-          supabase.auth.signOut({ scope: 'local' }).catch(() => {});
-          setUser(null);
-        }
-      } else {
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      } else if (event === 'INITIAL_SESSION') {
         setUser(session?.user ?? null);
       }
-      setLoading(false);
-    }).catch(err => {
-      console.error('Unexpected auth error:', err);
+
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESH_FAILED' as any) {
-        if (event === 'TOKEN_REFRESH_FAILED' as any) {
-          supabase.auth.signOut({ scope: 'local' }).catch(() => {});
-        }
-        setUser(null);
-      } else if (session) {
-        setUser(session.user);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
