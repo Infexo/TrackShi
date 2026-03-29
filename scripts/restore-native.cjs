@@ -29,8 +29,6 @@ const javaDestDir = 'android/app/src/main/java/com/trackshi/app';
 if (!fs.existsSync(javaDestDir)) fs.mkdirSync(javaDestDir, { recursive: true });
 
 copyFile('native-overrides/MainActivity.java', path.join(javaDestDir, 'MainActivity.java'));
-copyFile('native-overrides/FloatingWidgetPlugin.java', path.join(javaDestDir, 'FloatingWidgetPlugin.java'));
-copyFile('native-overrides/FloatingWidgetService.java', path.join(javaDestDir, 'FloatingWidgetService.java'));
 
 // Manifest
 copyFile('native-overrides/AndroidManifest.xml', 'android/app/src/main/AndroidManifest.xml');

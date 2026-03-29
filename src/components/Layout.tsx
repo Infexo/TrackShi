@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Clock, Users, Calendar as CalendarIcon, BarChart2, History, Settings, LogOut, Upload, Menu, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import GlobalTimer from './GlobalTimer';
 
 export default function Layout() {
   const location = useLocation();
@@ -34,6 +33,35 @@ export default function Layout() {
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
+
+      {/* Bottom Navigation (Mobile) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#0A0A0A] border-t border-zinc-800 flex items-center justify-around px-2 z-50">
+        {navItems.slice(0, 5).map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex flex-col items-center gap-1 p-2 transition-all ${
+                isActive ? 'text-[#FF5500]' : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              <Icon size={20} />
+              <span className="text-[10px] font-mono uppercase tracking-tighter">{item.label}</span>
+            </Link>
+          );
+        })}
+        <Link
+          to="/profile"
+          className={`flex flex-col items-center gap-1 p-2 transition-all ${
+            location.pathname === '/profile' ? 'text-[#FF5500]' : 'text-zinc-500 hover:text-zinc-300'
+          }`}
+        >
+          <Settings size={20} />
+          <span className="text-[10px] font-mono uppercase tracking-tighter">Profile</span>
+        </Link>
+      </nav>
 
       {/* Sidebar */}
       <aside className={`
@@ -94,8 +122,6 @@ export default function Layout() {
           <Outlet />
         </div>
       </main>
-      
-      <GlobalTimer />
     </div>
   );
 }
